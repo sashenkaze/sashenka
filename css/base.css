@@ -1,0 +1,75 @@
+:root{
+  --ink:#141414; --cream:#F4EFE6; --focus:#3A5BFF;
+  --dock-bg:#F4EFE6; --dock-fg:#141414; --dock-line:#141414; --dock-accent:#FF5A36; --dock-r:0px;
+}
+body[data-theme="school"]  {--dock-bg:#F1E7D0;--dock-fg:#3B2A1E;--dock-line:#3B2A1E;--dock-accent:#B8372E;--dock-r:4px}
+body[data-theme="notes"]   {--dock-bg:#0B1026;--dock-fg:#F2E9C9;--dock-line:#E8B04B;--dock-accent:#E8B04B;--dock-r:2px}
+body[data-theme="profile"] {--dock-bg:#1B1B2F;--dock-fg:#3DFFB5;--dock-line:#3DFFB5;--dock-accent:#FF4D8D;--dock-r:0px}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:4.5rem;-webkit-text-size-adjust:100%;
+  scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+body{margin:0;background:var(--cream);color:var(--ink);line-height:1.55;
+  font-family:'Bricolage Grotesque',system-ui,sans-serif}
+main{overflow-x:clip}
+img,svg{display:block;max-width:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:fixed;left:.5rem;top:-4rem;z-index:100;background:#141414;color:#fff;padding:.6rem 1rem}
+.skip:focus{top:.5rem}
+.noscript{padding:1rem;margin:0;background:#FFD23F}
+.wrap{width:min(1100px,100% - 2.5rem);margin-inline:auto}
+
+.s{position:relative;isolation:isolate;padding:clamp(4rem,9vw,7.5rem) 0}
+.s__head{display:grid;grid-template-columns:auto 1fr;gap:.2rem 1.2rem;align-items:end;margin-bottom:clamp(2rem,5vw,3.5rem)}
+.s__no{grid-row:span 2;margin:0}
+.s__head h2{margin:0}
+.s__blurb{margin:0;max-width:56ch}
+
+/* scroll-reveal (only gentle, and off for reduced motion) */
+.rv{opacity:0;translate:0 18px;transition:opacity .5s ease,translate .5s ease}
+.rv.in{opacity:1;translate:0 0}
+
+/* dock */
+.dock{position:fixed;top:.75rem;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:.4rem;
+  max-width:calc(100% - 1rem);padding:.3rem;background:var(--dock-bg);color:var(--dock-fg);
+  border:2px solid var(--dock-line);border-radius:var(--dock-r);box-shadow:3px 3px 0 var(--dock-line);
+  transition:background .3s,color .3s,border-color .3s,box-shadow .3s}
+.dock__brand{padding:.35rem .6rem;font-weight:800;text-decoration:none;white-space:nowrap}
+.dock__brand span{opacity:.5}
+.dock__list{display:flex;gap:.15rem;list-style:none;margin:0;padding:0}
+.dock__list a{display:flex;gap:.4rem;align-items:baseline;padding:.4rem .6rem;font-size:.85rem;font-weight:600;text-decoration:none}
+.dock__n{font-variant-numeric:tabular-nums;opacity:.65}
+.dock__list a[aria-current="true"]{background:var(--dock-fg);color:var(--dock-bg)}
+.dock__list a[aria-current="true"] .dock__n{opacity:1}
+.dock__sfx{display:grid;place-items:center;width:34px;height:34px;background:transparent;border:2px solid var(--dock-line);border-radius:var(--dock-r)}
+.dock__sfx .off{display:none}
+.dock__sfx[aria-pressed="false"] .on{display:none}
+.dock__sfx[aria-pressed="false"] .off{display:block}
+@media (max-width:900px){.dock__brand{display:none}}
+@media (max-width:720px){.dock__l{display:none}.dock__list a{padding:.45rem .65rem}}
+
+.progress{position:fixed;inset:0 0 auto 0;height:3px;z-index:60;background:var(--dock-accent);
+  transform:scaleX(0);transform-origin:left;transition:background .3s}
+
+.toast{position:fixed;left:50%;top:4.6rem;z-index:70;max-width:min(92vw,420px);padding:.7rem 1rem;
+  background:#141414;color:#F4EFE6;border:2px solid #F4EFE6;font-size:.95rem;
+  opacity:0;translate:-50% -8px;pointer-events:none;transition:opacity .25s,translate .25s}
+.toast.on{opacity:1;translate:-50% 0}
+
+.critter{position:fixed;z-index:65;width:52px;height:52px;padding:4px;background:#F4EFE6;border:2px solid #141414;
+  box-shadow:3px 3px 0 #141414;opacity:0;scale:.6;transition:opacity .3s,scale .3s}
+.critter.on{opacity:1;scale:1}
+.critter svg{width:100%;height:100%}
+
+main.is-flipped{filter:invert(1) hue-rotate(180deg)}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv{opacity:1;translate:none}
+}

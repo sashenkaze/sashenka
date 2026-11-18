@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sashenka Osaze (Shenka / Aze)</title>
+  <meta name="description" content="Personal site of Sashenka Osaze, a final-year IT student: formal education, and the things I'm into outside class.">
+  <link rel="canonical" href="https://sashenkaze.github.io/sashenka/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sashenka Osaze (Shenka / Aze)">
+  <meta property="og:description" content="Final-year IT student. Curious about most things, obsessed with a few.">
+  <meta property="og:url" content="https://sashenkaze.github.io/sashenka/">
+  <!-- Optional: add a 1200x630 image and uncomment
+  <meta property="og:image" content="https://sashenkaze.github.io/sashenka/assets/og.png"> -->
+  <meta name="theme-color" content="#F4EFE6">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Courier+Prime:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..600&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sections.css">
+  <link rel="stylesheet" href="css/player.css">
+</head>
+<body data-theme="hello">
+  <a class="skip" href="#hello">Skip to content</a>
+
+  <header class="dock" id="dock">
+    <a class="dock__brand" href="#hello">Shenka<span> / </span>Aze</a>
+    <nav aria-label="Sections">
+      <ol class="dock__list" id="dockList">
+        <li><a href="#hello"><span class="dock__n">01</span><span class="dock__l">Hello</span></a></li>
+        <li><a href="#school"><span class="dock__n">02</span><span class="dock__l">School</span></a></li>
+        <li><a href="#notes"><span class="dock__n">03</span><span class="dock__l">Field notes</span></a></li>
+        <li><a href="#profile"><span class="dock__n">04</span><span class="dock__l">Profile</span></a></li>
+        <li><a href="#contact"><span class="dock__n">05</span><span class="dock__l">Contact</span></a></li>
+      </ol>
+    </nav>
+    <button class="dock__sfx" id="sfxToggle" type="button" aria-pressed="true" aria-label="Sound effects">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>
+        <path class="on" d="M16 8q3 4 0 8M18.5 5.5q5.5 6.500 0 13" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path class="off" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </button>
+  </header>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <noscript><p class="noscript">This page builds itself with JavaScript. Please enable it to see the content.</p></noscript>
+
+  <main>
+    <section id="hello"   class="s hello"   data-theme="hello"></section>
+    <section id="school"  class="s school"  data-theme="school"></section>
+    <section id="notes"   class="s notes"   data-theme="notes"></section>
+    <section id="profile" class="s profile" data-theme="profile"></section>
+    <section id="contact" class="s contact" data-theme="contact"></section>
+  </main>
+
+  <aside class="player is-folded" id="player" aria-label="Music player">
+    <div class="player__bar">
+      <button class="player__fold" id="plFold" type="button" aria-expanded="false" aria-label="Open music player">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="12" r="2.500" fill="currentColor"/><circle cx="16" cy="12" r="2.500" fill="currentColor"/></svg>
+      </button>
+      <span class="player__dot" aria-hidden="true"></span>
+      <span class="player__mini" id="plMini">Music</span>
+    </div>
+    <div class="player__body">
+      <div class="player__lcd">
+        <div class="player__cover" id="plCover"></div>
+        <div class="player__meta">
+          <p class="player__title" id="plTitle">Loading</p>
+          <p class="player__artist" id="plArtist"></p>
+          <p class="player__time" id="plTime">0:00 / --:--</p>
+        </div>
+        <div class="viz" id="plViz" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+      </div>
+      <div class="btns">
+        <button class="pbtn" id="plPrev" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>Prev</button>
+        <button class="pbtn" id="plPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Play</button>
+        <button class="pbtn is-active" id="plPause" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>Pause</button>
+        <button class="pbtn" id="plNext" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>Next</button>
+      </div>
+      <label class="vol"><span>Vol</span><input id="plVol" type="range" min="0" max="1" step="0.05" value="0.7"></label>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="content.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
