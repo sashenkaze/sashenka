@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" width="360" height="420">
+  <defs>
+    <clipPath id="L"><polygon points="0,0 180,0 170,60 190,120 172,180 188,240 176,300 184,360 180,420 0,420"/></clipPath>
+    <clipPath id="R"><polygon points="360,0 360,420 180,420 184,360 176,300 188,240 172,180 190,120 170,60 180,0"/></clipPath>
+    <g id="bust">
+      <path d="M40 420C40 330 110 285 180 285C250 285 320 330 320 420Z"/>
+      <circle cx="180" cy="170" r="88"/>
+    </g>
+  </defs>
+  <rect width="360" height="420" fill="#F4EFE6"/>
+  <g clip-path="url(#L)"><use href="#bust" fill="#FF5A36"/></g>
+  <g clip-path="url(#R)"><use href="#bust" fill="#3A5BFF"/></g>
+  <g fill="none" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+    <path d="M40 420C40 330 110 285 180 285C250 285 320 330 320 420"/>
+    <circle cx="180" cy="170" r="88"/>
+  </g>
+  <circle cx="148" cy="165" r="9" fill="#F4EFE6" stroke="#141414" stroke-width="4"/>
+  <circle cx="212" cy="165" r="9" fill="#F4EFE6" stroke="#141414" stroke-width="4"/>
+  <path d="M150 210Q180 226 210 210" fill="none" stroke="#141414" stroke-width="6" stroke-linecap="round"/>
+</svg>

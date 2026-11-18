@@ -17,7 +17,7 @@
       else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
       else el.setAttribute(k, v === true ? '' : v);
     }
-    for (const kid of kids.flat()) {
+    for (const kid of kids.flat(Infinity)) {
       if (kid == null || kid === false) continue;
       el.append(kid.nodeType ? kid : document.createTextNode(kid));
     }
@@ -195,6 +195,80 @@
   }
 
   /* =====================  04 PROFILE  ===================== */
+    /* ----- card stacks (Play tab) ----- */
+  const STACK_COLORS = ['#3DFFB5', '#FFE45E', '#FF4D8D'];
+  const STACK_OUT = 'translate(62%,-16%) rotate(14deg)';
+  const initials = (name) => name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  // messy-pile pose by depth: top card is nearly straight, the ones beneath peek out at odd angles
+  const pose = (d) => {
+    if (d === 0) return 'translate(0px,0px) rotate(-2deg)';
+    const rot = ((d * 7) % 9 - 4) * 2.2, dx = ((d * 5) % 7 - 3) * 3, dy = ((d * 3) % 5 - 2) * 3;
+    return 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
+  };
+
+    function buildStack(g) {
+    const n = g.games.length;
+    const cards = g.games.map((x, i) => {
+      const face = h('span', { class: 'sc__face' });
+      const fallback = () => face.replaceChildren(h('span', { class: 'sc__ph' }, initials(x.name)));
+      if (x.icon) {
+        const img = h('img', { src: x.icon, alt: '', draggable: 'false', decoding: 'async' });
+        img.addEventListener('error', fallback);
+        face.append(img);
+      } else fallback();
+      return h('span', { class: 'sc', style: '--c:' + STACK_COLORS[i % 3] },
+        face, x.main && h('span', { class: 'sc__flag' }, 'MAIN'));
+    });
+    const describe = (x) => g.title + ': ' + x.name + (x.note ? ' (' + x.note + ')' : '');
+
+    if (n === 1) {
+      cards[0].style.transform = pose(0);
+      return h('div', { class: 'stack is-single', role: 'img', 'aria-label': describe(g.games[0]) }, cards);
+    }
+
+    const count = h('span', { class: 'stack__count', 'aria-hidden': 'true' });
+    const btn = h('button', { class: 'stack', type: 'button' }, cards, count);
+    let order = cards.slice(), busy = false;
+
+    const layout = () => {
+      order.forEach((c, d) => {
+        c.style.zIndex = n - d;
+        c.style.transform = pose(Math.min(d, 3));
+        c.style.opacity = d > 3 ? 0 : 1;
+        c.classList.toggle('is-top', d === 0);
+      });
+      const cur = cards.indexOf(order[0]);
+      count.textContent = (cur + 1) + '/' + n;
+      btn.setAttribute('aria-label', describe(g.games[cur]) + ', ' + (cur + 1) + ' of ' + n + '. Press for the next one.');
+    };
+
+    btn.addEventListener('click', () => {
+      if (busy) return; busy = true;
+      const top = order[0], from = pose(0), dur = reduce ? 0 : 520;
+      btn.classList.add('is-busy');                 // sit above neighbouring stacks while moving
+      order.push(order.shift());
+      layout();                                      // others rise (CSS transition); top gets its final back pose
+      top.style.zIndex = n + 1;                      // ...but stays on top until it has cleared the pile
+      top.style.opacity = 1;
+      const to = top.style.transform;
+      const finish = () => {
+        top.classList.remove('is-flying'); btn.classList.remove('is-busy');
+        top.style.zIndex = 1; top.style.opacity = (n - 1 > 3) ? 0 : 1; busy = false;
+      };
+      if (!dur) return finish();
+      top.classList.add('is-flying');
+      const anim = top.animate([
+        { transform: from, offset: 0, easing: 'cubic-bezier(.2,.75,.3,1)' },
+        { transform: 'translate(108%,-10%) rotate(13deg)', offset: .4, easing: 'cubic-bezier(.55,0,.3,1)' },
+        { transform: to, offset: 1 }
+      ], { duration: dur });
+      setTimeout(() => { top.style.zIndex = 1; }, dur * 0.4);   // swap layers while it is clear of the pile
+      anim.onfinish = finish; anim.oncancel = finish;
+    });
+
+    layout();
+    return btn;
+  }
   function renderProfile(c) {
     const panel = (key, ...kids) => h('div', { class: 'panel', role: 'tabpanel', id: 'panel-' + key, 'aria-labelledby': 'tab-' + key }, kids);
 
@@ -208,11 +282,7 @@
 
     const p = c.play;
     const play = panel('play', h('h3', {}, p.title), p.blurb && h('p', { class: 'panel__blurb' }, p.blurb),
-      p.groups.map(g => h('div', { class: 'group' }, h('h3', {}, g.title),
-        h('ul', { class: 'carts' }, g.games.map(x => h('li', { class: 'cart' },
-          x.main && h('span', { class: 'cart__flag' }, 'MAIN'),
-          h('span', { class: 'cart__name' }, x.name),
-          x.note && h('span', { class: 'cart__note' }, x.note)))))));
+      h('div', { class: 'stacks' }, p.groups.map(g => buildStack(g))));
 
     const sp = c.speak;
     const speak = panel('speak', h('h3', {}, sp.title), sp.blurb && h('p', { class: 'panel__blurb' }, sp.blurb),

@@ -183,7 +183,6 @@
   }
 
   /* start folded on small screens, open on desktop. Never autoplay. */
-  if (window.innerWidth >= 640) el.fold.click();
   load(0, false);
   setState(false);
 })();

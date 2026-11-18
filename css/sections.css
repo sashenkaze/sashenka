@@ -153,15 +153,31 @@
 .stub:nth-child(3n+1){background:#FFE45E}.stub:nth-child(3n+2){background:#3DFFB5}.stub:nth-child(3n){background:#FF4D8D}
 
 .group{margin-top:1.6rem}
-.carts{display:flex;flex-wrap:wrap;gap:1rem;margin:0;padding:0;list-style:none}
-.cart{position:relative;width:158px;min-height:96px;padding:.6rem .8rem 1.5rem;background:var(--c,#3DFFB5);color:#1B1B2F;
-  clip-path:polygon(0 0,84% 0,100% 18%,100% 100%,0 100%);transition:translate .12s steps(2)}
 .cart:hover{translate:0 -4px}
 .cart:nth-child(3n+1){--c:#3DFFB5}.cart:nth-child(3n+2){--c:#FFE45E}.cart:nth-child(3n){--c:#FF4D8D}
 .cart::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.28) 0 6px,transparent 6px 12px)}
 .cart__name{font-size:1.6rem;line-height:1}
 .cart__note{display:block;margin-top:.3rem;font-size:1.05rem;opacity:.8}
 .cart__flag{position:absolute;right:.4rem;top:.4rem;padding:.2rem .35rem;background:#1B1B2F;color:#FFE45E;font-size:.45rem}
+
+/* card stacks: one pile per genre, side by side */
+.stacks{display:flex;gap:1.8rem;margin:1.2rem -4px 0;padding:1.6rem 170px 3rem 16px;
+  overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-ms-overflow-style:none}
+.stacks::-webkit-scrollbar{display:none}
+.stack{position:relative;isolation:isolate;flex:none;display:block;width:124px;height:124px;margin:0;padding:0;
+  background:none;border:0;color:inherit;cursor:pointer;scroll-snap-align:start;-webkit-tap-highlight-color:transparent}
+.stack.is-single{cursor:default}
+.stack.is-busy{z-index:5}
+.sc{position:absolute;inset:0;display:block;background:var(--c);border:3px solid #0E0E1C;box-shadow:6px 6px 0 rgba(0,0,0,.35);
+  transition:transform .5s cubic-bezier(.25,.8,.3,1),opacity .25s ease,translate .15s ease}
+.sc.is-flying{transition:none}
+.stack.is-busy .sc{will-change:transform}
+.stack:not(.is-single):hover .sc.is-top{translate:0 -4px}
+.sc__face{display:block;width:100%;height:100%;padding:5px}
+.sc__face img{display:block;width:100%;height:100%;object-fit:cover;background:#0E0E1C;user-select:none}
+.sc__ph{display:grid;place-items:center;width:100%;height:100%;background:#0E0E1C;color:var(--c);font:1.1rem 'Press Start 2P',monospace}
+.sc__flag{position:absolute;right:-9px;top:-11px;padding:.2rem .35rem;background:#1B1B2F;color:#FFE45E;font:.45rem 'Press Start 2P',monospace}
+.stack__count{position:absolute;left:0;bottom:-2rem;font:.55rem 'Press Start 2P',monospace;color:#FFE45E}
 
 .langs{display:grid;gap:1rem;margin:0;padding:0;list-style:none}
 .lang{display:grid;grid-template-columns:minmax(8rem,13rem) 1fr 9rem;gap:.6rem 1rem;align-items:center}

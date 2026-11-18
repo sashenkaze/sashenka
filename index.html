@@ -57,7 +57,7 @@
     <section id="contact" class="s contact" data-theme="contact"></section>
   </main>
 
-  <aside class="player is-folded" id="player" aria-label="Music player">
+    <aside class="player is-folded" id="player" aria-label="Music player">
     <div class="player__bar">
       <button class="player__fold" id="plFold" type="button" aria-expanded="false" aria-label="Open music player">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="12" r="2.500" fill="currentColor"/><circle cx="16" cy="12" r="2.500" fill="currentColor"/></svg>
@@ -66,22 +66,26 @@
       <span class="player__mini" id="plMini">Music</span>
     </div>
     <div class="player__body">
-      <div class="player__lcd">
-        <div class="player__cover" id="plCover"></div>
-        <div class="player__meta">
-          <p class="player__title" id="plTitle">Loading</p>
-          <p class="player__artist" id="plArtist"></p>
-          <p class="player__time" id="plTime">0:00 / --:--</p>
+      <div class="player__clip">
+        <div class="player__content">
+          <div class="player__lcd">
+            <div class="player__cover" id="plCover"></div>
+            <div class="player__meta">
+              <p class="player__title" id="plTitle">Loading</p>
+              <p class="player__artist" id="plArtist"></p>
+              <p class="player__time" id="plTime">0:00 / --:--</p>
+            </div>
+            <div class="viz" id="plViz" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+          </div>
+          <div class="btns">
+            <button class="pbtn" id="plPrev" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>Prev</button>
+            <button class="pbtn" id="plPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Play</button>
+            <button class="pbtn is-active" id="plPause" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>Pause</button>
+            <button class="pbtn" id="plNext" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>Next</button>
+          </div>
+          <label class="vol"><span>Vol</span><input id="plVol" type="range" min="0" max="1" step="0.05" value="0.7"></label>
         </div>
-        <div class="viz" id="plViz" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </div>
-      <div class="btns">
-        <button class="pbtn" id="plPrev" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>Prev</button>
-        <button class="pbtn" id="plPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Play</button>
-        <button class="pbtn is-active" id="plPause" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>Pause</button>
-        <button class="pbtn" id="plNext" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>Next</button>
-      </div>
-      <label class="vol"><span>Vol</span><input id="plVol" type="range" min="0" max="1" step="0.05" value="0.7"></label>
     </div>
   </aside>
 
