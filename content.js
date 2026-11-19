@@ -10,10 +10,10 @@ window.SITE = {
     hello: {
         names: { primary: "Shenka", alt: "Aze", full: "Sashenka Osaze" },
         tagline: "Final-year IT student. Curious about most things, obsessed with a few.",
-        intro: "I'm Sashenka, but Shenka or Aze works too. I'm finishing vocational school in IT, and I learn best by taking things apart and putting them back together. Below: where I studied, what I'm into outside class, and some music while you look around.",
+        intro: "I'm Sashenka, but Shenka or Aze works too. I'm finishing vocational school in Software Development, and I learn best by taking things apart and putting them back together. Below: where I studied, what I'm into outside class, and some music while you look around.",
         avatar: "assets/avatar.svg",          // swap for "assets/me.jpg" when you have a photo
         avatarAlt: "Placeholder portrait: a bust split into a red half and a blue half",
-        photoCaption: "Placeholder portrait. A real photo goes here later.",
+        photoCaption: "Placeholder. Maybe I'll upload my selfie sometimes.",
         status: [
             { label: "Now", text: "Final year at SMK, majoring in IT" },
             { label: "Also now", text: "Six-month internship (PKL)" }
@@ -26,21 +26,57 @@ window.SITE = {
         title: "Education",
         blurb: "Three folders, one of them still open.",
         levels: [
-            { level: "SD", name: "Elementary school", school: "School name here", years: "20XX – 20XX" },
-            { level: "SMP", name: "Junior high school", school: "School name here", years: "20XX – 20XX" },
+            { level: "SD", name: "Elementary school", school: "SD Islam Ibnu Hajar", years: "2015 – 2021" },
+            { level: "SMP", name: "Junior high school", school: "SMP Negeri 13 Bogor", years: "2021 – 2024" },
             {
-                level: "SMK", name: "Vocational high school", school: "School name here", years: "20XX – now",
-                major: "Information Technology", note: "Final year (kelas 3).", current: true
+                level: "SMK", name: "Vocational high school", school: "SMKS WIKRAMA BOGOR", years: "2024 – now",
+                major: "Software Development", note: "3rd year.", current: true
             }
         ],
         internship: {
             title: "Industrial internship (PKL)",
             length: "6 months",
-            where: "Company name here",
+            where: "PT. Lifetech Tanpa Batas & PT. Hexaon Business Mitrasindo",
             status: "In transit",
             note: ""
         }
     },
+
+      /* ---------- 03 · PROJECTS ----------
+     Aim for 3 to 5. The first one shows large, so put your best one first.
+     Add a project: copy one { ... } block. Remove: delete it (watch the commas).
+     image: screenshot in assets/projects/ (about 1200x750, under 200 KB). "" shows a coloured placeholder.
+     links: a link with an empty href is hidden, so fill it in only when it's real. */
+  projects: {
+    no: "03",
+    title: "Projects",
+    blurb: "A few things I built during school and my internship or... just for fun.",
+    items: [
+      { name: "Project name here", kind: "Internship (PKL)", year: "20XX",
+        tagline: "One line about what it does.",
+        summary: "Two or three sentences: the problem, what you built, and what came out of it.",
+        role: "What you personally did.",
+        stack: ["Tech A", "Tech B", "Tech C"],
+        image: "", imageAlt: "",
+        links: [ { label: "Source code", href: "" }, { label: "Live demo", href: "" } ] },
+
+      { name: "Project name here", kind: "School project", year: "20XX",
+        tagline: "One line about what it does.",
+        summary: "Two or three sentences about the project.",
+        role: "Your part in it.",
+        stack: ["Tech A", "Tech B"],
+        image: "", imageAlt: "",
+        links: [ { label: "Source code", href: "" } ] },
+
+      { name: "Project name here", kind: "School project", year: "20XX",
+        tagline: "One line about what it does.",
+        summary: "Two or three sentences about the project.",
+        role: "Your part in it.",
+        stack: ["Tech A", "Tech B"],
+        image: "", imageAlt: "",
+        links: [] }
+    ]
+  },
 
     /* ---------- 03 · FIELD NOTES ---------- */
     notes: {
@@ -130,6 +166,7 @@ window.SITE = {
                 {
                     title: "Classic", games: [
                         { name: "Wordle", icon: "assets/games/wordle.png" },
+                        { name: "Chess", icon: "assets/games/chess-com.jpg" },
                     ]
                 },
                 {
@@ -141,7 +178,10 @@ window.SITE = {
                 },
                 {
                     title: "Indie", games: [
-                        { name: "Illusion Carnival", icon: "assets/games/illusion.png" }]
+                        { name: "Illusion Carnival", icon: "assets/games/illusion.png" },
+                        { name: "Saihate Station", icon: "assets/games/saihate.jpg" },
+                        { name: "Helltaker", icon: "assets/games/helltaker.jpg" },
+                    ]
                 },
                 {
                     title: "Gacha", games: [
@@ -149,7 +189,9 @@ window.SITE = {
                         { name: "Blue Archive", icon: "assets/games/ba.jpg" },
                         { name: "Arknights: Endfield", icon: "assets/games/akef.jpg" },
                         { name: "Nikke", icon: "assets/games/nikke.png" },
-                        { name: "Wuthering Waves", icon: "assets/games/wuwa.webp" }]
+                        { name: "Wuthering Waves", icon: "assets/games/wuwa.webp" },
+                        { name: "Limbus Company", icon: "assets/games/limbus.jpg" },
+                    ]
                 }
             ]
         },
@@ -161,7 +203,7 @@ window.SITE = {
                 { name: "Indonesian", level: 10, label: "Native" },
                 { name: "Regional languages", level: 3, label: "A little" },
                 { name: "English", level: 6, label: "Intermediate" },
-                { name: "Japanese", level: 3, label: "Learning", note: "Hiragana and katakana done. Now on vocab and kanji. Not N5-certified yet." },
+                { name: "Japanese", level: 3, label: "Learning", note: "OMW to N5." },
                 { name: "Arabic", level: 2, label: "A little" },
                 { name: "German", level: 1, label: "A few words" },
                 { name: "Mandarin", level: 1, label: "A few words" },
@@ -173,7 +215,7 @@ window.SITE = {
             title: "Side quests",
             blurb: "Things I do rarely, and gladly.",
             groups: [
-                { title: "Sport", items: ["Cycling (the bike is broken right now)", "Table tennis", "Archery"] },
+                { title: "Sport", items: ["Cycling", "Table tennis", "Archery"] },
                 { title: "Music", items: ["No fixed genre. If it sounds good, it stays."] }
             ],
             note: "None of these are on a schedule. When the chance shows up, I'm in."
@@ -184,11 +226,11 @@ window.SITE = {
     contact: {
         no: "05",
         title: "Say hello.",
-        blurb: "Email is the fastest way. Instagram works too.",
+        blurb: "Email is the fastest way. Instagram works too. GitHub for my shenanigans.",
         links: [
             { kind: "email", label: "Email", value: "sashenkaosazee@gmail.com", href: "mailto:sashenkaosazee@gmail.com" },
             { kind: "github", label: "GitHub", value: "sashenkaze", href: "https://github.com/sashenkaze" },
-            { kind: "instagram", label: "Instagram", value: "@shenka_4z3", href: "https://instagram.com/shenka_4z3" },
+            { kind: "instagram", label: "Instagram", value: "@shenka_aze", href: "https://instagram.com/shenka_aze" },
             { kind: "linkedin", label: "LinkedIn", value: "Profile on its way", soon: true }
         ]
     },

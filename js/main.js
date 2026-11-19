@@ -73,6 +73,7 @@
     const kit = {
       hello:   () => tone({ type: 'square', f: 150, f2: 55, d: 0.1, v: 0.08 }),
       school:  () => noise(0.07, 0.35, 1800),
+            projects: () => { noise(0.05, 0.3, 900); tone({ type: 'triangle', f: 180, f2: 110, d: 0.09, v: 0.08 }); },
       notes:   () => { tone({ type: 'sine', f: 880, d: 0.35, v: 0.05 }); tone({ type: 'sine', f: 1320, d: 0.3, v: 0.025, t: 0.04 }); },
       profile: () => { tone({ type: 'square', f: 523, d: 0.06, v: 0.035 }); tone({ type: 'square', f: 784, d: 0.08, v: 0.035, t: 0.06 }); },
       contact: () => tone({ type: 'triangle', f: 392, f2: 523, d: 0.12, v: 0.07 }),
@@ -145,6 +146,48 @@
         h('span', { class: 'stamp stamp--ticket' }, t.status))));
   }
 
+    /* =====================  03 PROJECTS  ===================== */
+  function renderProjects(c) {
+    const boxes = c.items.map((p, i) => {
+      const id = 'box-' + i;
+      const rows = [p.summary && ['What it is', p.summary], p.role && ['My part', p.role]].filter(Boolean);
+      const links = (p.links || []).filter(l => l.href);
+      const stack = p.stack || [];
+      const has = rows.length || stack.length || links.length;
+
+      const more = has && h('div', { class: 'box__more', id }, h('div', {},
+        h('div', { class: 'box__inside' },
+          rows.map(([k, v]) => h('p', {}, h('b', {}, k + ': '), v)),
+          stack.length > 0 && h('ul', { class: 'box__stack', 'aria-label': 'Built with' }, stack.map(s => h('li', {}, s))),
+          links.length > 0 && h('div', { class: 'box__links' },
+            links.map(l => h('a', { class: 'box__link', href: l.href, target: '_blank', rel: 'noopener noreferrer' }, l.label))))));
+
+      const btn = has && h('button', {
+        class: 'box__open', type: 'button', 'aria-expanded': 'false', 'aria-controls': id,
+        onclick: (e) => {
+          const b = e.currentTarget, open = b.closest('.box').classList.toggle('is-open');
+          b.setAttribute('aria-expanded', String(open)); b.textContent = open ? 'Close box' : 'Open box';
+        }
+      }, 'Open box');
+
+      const initials = p.name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      const cover = h('div', { class: 'box__cover' },
+        p.kind && h('span', { class: 'box__kind' }, p.kind),
+        p.image
+          ? h('img', { src: p.image, alt: p.imageAlt || '', loading: 'lazy', decoding: 'async' })
+          : h('span', { class: 'box__ph', 'aria-hidden': 'true' }, initials));
+
+      return h('article', { class: 'box', 'data-reveal': '' },
+        cover,
+        h('div', { class: 'box__body' },
+          p.year && h('p', { class: 'box__year' }, p.year),
+          h('h3', { class: 'box__name' }, p.name),
+          p.tagline && h('p', { class: 'box__tag' }, p.tagline),
+          btn, more));
+    });
+    $('#projects').append(h('div', { class: 'wrap' }, head(c.no, c.title, c.blurb), h('div', { class: 'boxes' }, boxes)));
+  }
+
   /* =====================  03 FIELD NOTES  ===================== */
   function buildSky(c) {
     const svg = svgEl('svg', { viewBox: '0 0 300 340', class: 'sky__svg', role: 'group', 'aria-label': 'Orion constellation, interactive' });
@@ -196,7 +239,21 @@
 
   /* =====================  04 PROFILE  ===================== */
     /* ----- card stacks (Play tab) ----- */
-  const STACK_COLORS = ['#3DFFB5', '#FFE45E', '#FF4D8D'];
+    const STACK_PALETTE = ['#3DFFB5', '#FFE45E', '#FF4D8D'];
+  let lastStart = -1;
+  // random colours per stack: no two neighbours match (including last -> first when the deck loops),
+  // and a stack never starts with the same colour as the stack before it
+  function pickColors(n) {
+    let first;
+    do { first = Math.floor(Math.random() * 3); } while (first === lastStart);
+    lastStart = first;
+    const seq = [first];
+    for (let i = 1; i < n; i++) {
+      const opts = [0, 1, 2].filter(c => c !== seq[i - 1] && !(i === n - 1 && n > 2 && c === seq[0]));
+      seq.push(opts[Math.floor(Math.random() * opts.length)]);
+    }
+    return seq;
+  }
   const STACK_OUT = 'translate(62%,-16%) rotate(14deg)';
   const initials = (name) => name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
   // messy-pile pose by depth: top card is nearly straight, the ones beneath peek out at odd angles
@@ -206,8 +263,9 @@
     return 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
   };
 
-    function buildStack(g) {
+     function buildStack(g) {
     const n = g.games.length;
+    const colors = pickColors(n);
     const cards = g.games.map((x, i) => {
       const face = h('span', { class: 'sc__face' });
       const fallback = () => face.replaceChildren(h('span', { class: 'sc__ph' }, initials(x.name)));
@@ -216,7 +274,7 @@
         img.addEventListener('error', fallback);
         face.append(img);
       } else fallback();
-      return h('span', { class: 'sc', style: '--c:' + STACK_COLORS[i % 3] },
+      return h('span', { class: 'sc', style: '--c:' + STACK_PALETTE[colors[i]] },
         face, x.main && h('span', { class: 'sc__flag' }, 'MAIN'));
     });
     const describe = (x) => g.title + ': ' + x.name + (x.note ? ' (' + x.note + ')' : '');
@@ -245,10 +303,13 @@
     btn.addEventListener('click', () => {
       if (busy) return; busy = true;
       const top = order[0], from = pose(0), dur = reduce ? 0 : 520;
-      btn.classList.add('is-busy');                 // sit above neighbouring stacks while moving
+      // fly right if there is room before the screen edge, otherwise fly left
+      const r = btn.getBoundingClientRect();
+      const dir = (r.right + r.width * 1.15 > window.innerWidth) ? -1 : 1;
+      btn.classList.add('is-busy');
       order.push(order.shift());
-      layout();                                      // others rise (CSS transition); top gets its final back pose
-      top.style.zIndex = n + 1;                      // ...but stays on top until it has cleared the pile
+      layout();
+      top.style.zIndex = n + 1;
       top.style.opacity = 1;
       const to = top.style.transform;
       const finish = () => {
@@ -259,10 +320,10 @@
       top.classList.add('is-flying');
       const anim = top.animate([
         { transform: from, offset: 0, easing: 'cubic-bezier(.2,.75,.3,1)' },
-        { transform: 'translate(108%,-10%) rotate(13deg)', offset: .4, easing: 'cubic-bezier(.55,0,.3,1)' },
+        { transform: 'translate(' + (dir * 108) + '%,-10%) rotate(' + (dir * 13) + 'deg)', offset: .4, easing: 'cubic-bezier(.55,0,.3,1)' },
         { transform: to, offset: 1 }
       ], { duration: dur });
-      setTimeout(() => { top.style.zIndex = 1; }, dur * 0.4);   // swap layers while it is clear of the pile
+      setTimeout(() => { top.style.zIndex = 1; }, dur * 0.4);
       anim.onfinish = finish; anim.oncancel = finish;
     });
 
@@ -343,6 +404,7 @@
   /* ---------- render everything ---------- */
   renderHello(S.hello);
   renderSchool(S.school);
+  if (S.projects) renderProjects(S.projects);
   renderNotes(S.notes);
   renderProfile(S.profile);
   renderContact(S.contact, S.hello.names);
@@ -359,13 +421,25 @@
 
   // scroll progress
   const bar = $('#progress'); let ticking = false;
-  function onScroll() {
+    function onScroll() {
     if (ticking) return; ticking = true;
     requestAnimationFrame(() => {
       const max = document.documentElement.scrollHeight - innerHeight;
-      bar.style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0).toFixed(4) + ')'; ticking = false;
+      bar.style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0).toFixed(4) + ')';
+      dockScroll();
+      ticking = false;
     });
   }
+    // dock: hide while scrolling down, return on scroll up
+  const dock = $('#dock'); let lastY = scrollY, dockHidden = false;
+  function dockScroll() {
+    const y = scrollY, dy = y - lastY;
+    if (Math.abs(dy) < 8) return;                                   // ignore tiny jitters
+    const hide = dy > 0 && y > 120 && !dock.querySelector(':focus-visible');
+    if (hide !== dockHidden) { dockHidden = hide; dock.classList.toggle('is-hidden', hide); }
+    lastY = y;
+  }
+  dock.addEventListener('focusin', () => { dockHidden = false; dock.classList.remove('is-hidden'); });
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   // gentle reveal

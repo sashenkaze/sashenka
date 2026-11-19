@@ -1,0 +1,83 @@
+:root{--tile:160px}
+@media (max-width:700px){:root{--tile:110px}}
+
+/* ---- animations pause while their section is off-screen (class set in main.js) ---- */
+.s.is-off,.s.is-off *,.s.is-off::before,.s.is-off::after,.s.is-off *::before,.s.is-off *::after{
+  animation-play-state:paused!important}
+
+/* ==================  SECTION BOUNDARIES (each in its own material)  ================== */
+@keyframes drift{to{transform:translateX(calc(var(--tile) * -1))}}
+@keyframes drift-px{to{transform:translateX(-160px)}}
+@keyframes sway{from{transform:translateX(-26px)}to{transform:translateX(26px)}}
+
+/* 02 School: torn paper edge that sways, with a darker sheet underneath */
+#school::before{left:-40px;right:auto;width:calc(100% + 80px);height:30px;
+  translate:0 -99%;transform:none;animation:sway 8s ease-in-out infinite alternate}
+#school::after{content:"";position:absolute;left:-40px;top:0;width:calc(100% + 80px);height:38px;z-index:-1;
+  translate:0 -99%;pointer-events:none;background:var(--noise),#B8915F;
+  clip-path:polygon(0 100%,0 40%,7% 62%,13% 28%,21% 66%,28% 36%,36% 70%,43% 30%,51% 64%,58% 26%,66% 68%,73% 34%,81% 60%,89% 30%,96% 58%,100% 40%,100% 100%);
+  animation:sway 11s ease-in-out infinite alternate-reverse}
+
+/* shared setup for the wave strips: Projects, Field notes, Contact */
+#projects::before,#projects::after,#notes::before,#notes::after,#contact::before,#contact::after{
+  content:"";position:absolute;left:0;top:0;width:calc(100% + var(--tile));height:28px;
+  translate:0 -99%;transform:none;clip-path:none;pointer-events:none;
+  background-color:transparent;background-repeat:repeat-x;background-size:var(--tile) 100%}
+#projects::after,#notes::after,#contact::after{top:-12px;animation:drift 14s linear infinite reverse}
+#projects::before,#notes::before,#contact::before{animation:drift 9s linear infinite}
+
+/* 03 Projects, 06 Contact: thick ink wave line */
+#projects::before{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='28' viewBox='0 0 160 28' preserveAspectRatio='none'><path d='M0 14Q40 2 80 14T160 14V28H0Z' fill='%232D49D6'/><path d='M0 14Q40 2 80 14T160 14' fill='none' stroke='%23141414' stroke-width='4'/></svg>")}
+#contact::before{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='28' viewBox='0 0 160 28' preserveAspectRatio='none'><path d='M0 14Q40 2 80 14T160 14V28H0Z' fill='%23F4EFE6'/><path d='M0 14Q40 2 80 14T160 14' fill='none' stroke='%23141414' stroke-width='4'/></svg>")}
+#projects::after,#contact::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='28' viewBox='0 0 160 28' preserveAspectRatio='none'><path d='M0 14Q40 2 80 14T160 14' fill='none' stroke='%23141414' stroke-opacity='.4' stroke-width='2'/></svg>")}
+#contact{border-top:0}
+
+/* 04 Field notes: thin gold line on the night sky */
+#notes::before{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='28' viewBox='0 0 160 28' preserveAspectRatio='none'><path d='M0 14Q40 4 80 14T160 14V28H0Z' fill='%230B1026'/><path d='M0 14Q40 4 80 14T160 14' fill='none' stroke='%23E8B04B' stroke-width='1.5'/></svg>")}
+#notes::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='28' viewBox='0 0 160 28' preserveAspectRatio='none'><path d='M0 14Q40 4 80 14T160 14' fill='none' stroke='%23F2E9C9' stroke-opacity='.3' stroke-width='1'/></svg>")}
+
+/* 05 Profile: stepped pixel wave, moves in 8 jumps */
+#profile::before{content:"";position:absolute;left:0;top:0;width:calc(100% + 160px);height:32px;
+  translate:0 -99%;transform:none;pointer-events:none;
+  background-color:transparent;background-repeat:repeat-x;background-size:160px 100%;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='32' viewBox='0 0 160 32' shape-rendering='crispEdges' preserveAspectRatio='none'><polygon points='0,26 0,18 20,18 20,10 40,10 40,2 80,2 80,10 100,10 100,18 120,18 120,26 160,26 160,32 0,32' fill='%231B1B2F'/><path d='M0 26V18H20V10H40V2H80V10H100V18H120V26H160' fill='none' stroke='%233DFFB5' stroke-width='4'/></svg>");
+  animation:drift-px 5s steps(8) infinite}
+
+/* ==================  SMALL IDLE ANIMATIONS  ================== */
+/* Orion: a few stars twinkle */
+.tw{animation:twinkle var(--d,4s) ease-in-out var(--dl,0s) infinite}
+.dot.tw{animation-name:twinkle-dot}
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:.95}}
+@keyframes twinkle-dot{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* Shenka / Aze stickers: a very slight wobble (uses `rotate`, so dragging still works) */
+.sticker{animation:wobble 5.5s ease-in-out infinite}
+.sticker--b{animation-duration:6.5s;animation-delay:-2s;animation-direction:reverse}
+.sticker.is-drag{animation-play-state:paused}
+@keyframes wobble{0%,100%{rotate:-.9deg}50%{rotate:1.1deg}}
+
+/* tape in the wind: school ticket + project boxes */
+.tape,.box::before{animation:flutter 5s ease-in-out infinite}
+.tape--b{animation-duration:6.4s;animation-delay:-2.2s}
+.box:nth-child(even)::before{animation-duration:5.8s;animation-delay:-1.7s}
+@keyframes flutter{0%,100%{transform:skewY(0) scaleX(1)}30%{transform:skewY(5deg) scaleX(.96)}65%{transform:skewY(-4deg) scaleX(.98)}}
+
+/* ==================  PROFILE: 8-bit glow and motion  ================== */
+@keyframes blink{50%{opacity:0}}
+.tab[aria-selected="true"]::after{content:"";display:inline-block;width:.55em;height:.9em;margin-left:.6em;vertical-align:-.1em;
+  background:#1B1B2F;animation:blink 1s steps(1) infinite}
+
+.profile h2{animation:pxglow 2.4s steps(3) infinite}
+@keyframes pxglow{0%,100%{text-shadow:0 0 0 rgba(61,255,181,0)}50%{text-shadow:0 0 10px rgba(61,255,181,.75),0 0 2px rgba(61,255,181,.9)}}
+.hop{display:inline-block;animation:hop 2.4s steps(1) infinite;animation-delay:calc(var(--i) * -.09s)}
+@keyframes hop{0%{transform:translateY(0)}6%{transform:translateY(-6px)}14%{transform:translateY(-3px)}22%,100%{transform:translateY(0)}}
+
+.profile .meter span:nth-child(n){background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 8px,transparent 8px 16px);
+  background-size:16px 100%;animation:shim 1.2s steps(4) infinite}
+@keyframes shim{to{background-position:16px 0}}
+.xp i.last{animation:blink 1.2s steps(1) infinite}
+
+#profile::after{content:"";position:absolute;left:6vw;top:5.5rem;width:4px;height:4px;background:#3DFFB5;z-index:-1;pointer-events:none;
+  box-shadow:18vw 30px #FF4D8D,31vw -12px #FFE45E,47vw 54px #3DFFB5,63vw 6px #FF4D8D,79vw 40px #FFE45E,90vw -8px #3DFFB5,12vw 160px #FFE45E,70vw 190px #3DFFB5;
+  animation:pxtw 2.4s steps(2) infinite alternate}
+@keyframes pxtw{from{opacity:1}to{opacity:.2}}
