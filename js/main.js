@@ -44,7 +44,7 @@
   /* ---------- sound effects (synthesised, no files) ---------- */
   const Sfx = (() => {
     let ctx = null, on = true;
-    try { on = localStorage.getItem('shenka.sfx') !== 'off'; } catch (e) {}
+    try { on = localStorage.getItem('shenka.sfx') !== 'off'; } catch (e) { }
     function ensure() {
       if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); }
       if (ctx.state === 'suspended') ctx.resume();
@@ -71,17 +71,17 @@
       src.connect(f).connect(g).connect(c.destination); src.start();
     }
     const kit = {
-      hello:   () => tone({ type: 'square', f: 150, f2: 55, d: 0.1, v: 0.08 }),
-      school:  () => noise(0.07, 0.35, 1800),
-            projects: () => { noise(0.05, 0.3, 900); tone({ type: 'triangle', f: 180, f2: 110, d: 0.09, v: 0.08 }); },
-      notes:   () => { tone({ type: 'sine', f: 880, d: 0.35, v: 0.05 }); tone({ type: 'sine', f: 1320, d: 0.3, v: 0.025, t: 0.04 }); },
+      hello: () => tone({ type: 'square', f: 150, f2: 55, d: 0.1, v: 0.08 }),
+      school: () => noise(0.07, 0.35, 1800),
+      projects: () => { noise(0.05, 0.3, 900); tone({ type: 'triangle', f: 180, f2: 110, d: 0.09, v: 0.08 }); },
+      notes: () => { tone({ type: 'sine', f: 880, d: 0.35, v: 0.05 }); tone({ type: 'sine', f: 1320, d: 0.3, v: 0.025, t: 0.04 }); },
       profile: () => { tone({ type: 'square', f: 523, d: 0.06, v: 0.035 }); tone({ type: 'square', f: 784, d: 0.08, v: 0.035, t: 0.06 }); },
       contact: () => tone({ type: 'triangle', f: 392, f2: 523, d: 0.12, v: 0.07 }),
-      tick:    () => tone({ type: 'square', f: 1000, f2: 700, d: 0.03, v: 0.03 })
+      tick: () => tone({ type: 'square', f: 1000, f2: 700, d: 0.03, v: 0.03 })
     };
     return {
       get on() { return on; },
-      set(v) { on = v; try { localStorage.setItem('shenka.sfx', v ? 'on' : 'off'); } catch (e) {} },
+      set(v) { on = v; try { localStorage.setItem('shenka.sfx', v ? 'on' : 'off'); } catch (e) { } },
       play(k) { if (on && kit[k]) kit[k](); }
     };
   })();
@@ -146,7 +146,7 @@
         h('span', { class: 'stamp stamp--ticket' }, t.status))));
   }
 
-    /* =====================  03 PROJECTS  ===================== */
+  /* =====================  03 PROJECTS  ===================== */
   function renderProjects(c) {
     const boxes = c.items.map((p, i) => {
       const id = 'box-' + i;
@@ -193,17 +193,20 @@
     const svg = svgEl('svg', { viewBox: '0 0 300 340', class: 'sky__svg', role: 'group', 'aria-label': 'Orion constellation, interactive' });
     let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 46; i++) {
-      svg.append(svgEl('circle', { cx: (rnd() * 300).toFixed(1), cy: (rnd() * 340).toFixed(1), r: (rnd() * 1.1 + 0.3).toFixed(2), fill: '#F2E9C9', opacity: (rnd() * 0.5 + 0.2).toFixed(2) }));
+      const tw = i < 7;   // the first 7 background stars twinkle
+      const a = { cx: (rnd() * 300).toFixed(1), cy: (rnd() * 340).toFixed(1), r: (rnd() * 1.1 + 0.3).toFixed(2), fill: '#F2E9C9', opacity: (rnd() * 0.5 + 0.2).toFixed(2) };
+      if (tw) { a.class = 'tw'; a.style = '--d:' + (3 + (i % 4)) + 's;--dl:-' + (i * 0.9).toFixed(1) + 's'; }
+      svg.append(svgEl('circle', a));
     }
     c.lines.forEach(([a, b]) => {
       const A = c.stars[a], B = c.stars[b];
       svg.append(svgEl('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: 'sky__line' }));
     });
     const note = h('div', { class: 'sky__note', 'aria-live': 'polite' }, h('p', {}, 'Tap a star.'));
-    const gs = c.stars.map((s) => {
+    const gs = c.stars.map((s, i) => {
       const g = svgEl('g', { class: 'sky__star', tabindex: '0', role: 'button', 'aria-label': s.name, 'data-sfx': '' });
       g.append(svgEl('circle', { cx: s.x, cy: s.y, r: 15, fill: 'transparent' }));
-      g.append(svgEl('circle', { class: 'dot', cx: s.x, cy: s.y, r: s.r }));
+            g.append(svgEl('circle', { class: 'dot' + ([0, 3, 6].includes(i) ? ' tw' : ''), cx: s.x, cy: s.y, r: s.r, style: '--d:' + (4 + i) + 's;--dl:-' + i + 's' }));
       const label = svgEl('text', { x: s.x + 11, y: s.y + 4, class: 'sky__label' }); label.textContent = s.name; g.append(label);
       const pick = () => {
         gs.forEach(x => x.classList.remove('is-on')); g.classList.add('is-on');
@@ -216,15 +219,165 @@
     });
     return h('div', { class: 'wrap sky' }, svg, h('div', { class: 'sky__text' }, h('h3', {}, c.title), h('p', {}, c.blurb), note));
   }
+    /* ----- 3D specimens (Field notes) ----- */
+  const hoverable = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let decoderSet = false;
+  function viewerReady() {
+    const ready = customElements.get('model-viewer')
+      ? Promise.resolve(true)
+      : Promise.race([
+          customElements.whenDefined('model-viewer').then(() => true),
+          new Promise(r => setTimeout(() => r(false), 8000))
+        ]);
+    return ready.then((ok) => {
+      if (ok && !decoderSet) {
+        decoderSet = true;   // teach model-viewer how to read meshopt-compressed files
+        try { customElements.get('model-viewer').meshoptDecoderLocation = 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.1/meshopt_decoder.js'; } catch (e) {}
+      }
+      return ok;
+    });
+  }
+  function creditEl(m) {
+    const a = (href, text) => h('a', { href, target: '_blank', rel: 'noopener noreferrer' }, text);
+    return h('p', { class: 'credit' }, '“', a(m.source, m.title), '” by ', a(m.authorUrl, m.author),
+      m.also && [' with scan by ', a(m.also.url, m.also.label)], ', ', a(m.licenseUrl, m.license),
+      '. Modified: ' + (m.modified || 'compressed for web') + '.');
+  }
+  function makeViewer(m, big) {
+    const v = document.createElement('model-viewer');
+    const set = (k, val) => v.setAttribute(k, val === true ? '' : val);
+    set('alt', m.alt || '');
+    set('camera-orbit', m.orbit || '0deg 75deg 105%');
+    set('interaction-prompt', 'none');
+    set('shadow-intensity', m.shadow != null ? m.shadow : '0.7');
+    set('exposure', m.exposure || '1');
+    set('environment-image', 'neutral');
+    set('rotation-per-second', '24deg');
+    set('auto-rotate-delay', big ? '2500' : '0');
+    set('disable-pan', true);
+    if (m.poster) set('poster', m.poster);
+    if (big) {
+      const z = m.zoom || ['25%', '300%'];
+      set('camera-controls', true);
+      set('touch-action', 'none');
+      set('min-camera-orbit', 'auto auto ' + z[0]);
+      set('max-camera-orbit', 'auto auto ' + z[1]);
+      if (!reduce) set('auto-rotate', true);
+    } else set('disable-zoom', true);          // card: no controls, so the page keeps scrolling
+    return v;
+  }
+
+  // modal
+  const modal = $('#modal'), stage = $('#mdStage');
+  let lastFocus = null, modalT = 0, openTok = 0;
+  function openModal(l, trigger) {
+    clearTimeout(modalT);
+    const tok = ++openTok; lastFocus = trigger;
+    $$('.vit').forEach(v => v._set && v._set(false));
+    $('#mdEra').textContent = l.era; $('#mdTitle').textContent = l.name; $('#mdNote').textContent = l.note;
+    $('#mdCredit').replaceChildren(creditEl(l.model));
+    stage.replaceChildren(h('span', { class: 'modal__load' }, 'Loading 3D'));
+    stage.style.background = l.model.bg || '';
+    modal.hidden = false; document.documentElement.classList.add('modal-open');
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+    $('#mdClose').focus();
+    viewerReady().then((ok) => {
+      if (tok !== openTok) return;
+      const fail = () => stage.replaceChildren(h('span', { class: 'modal__load' }, '3D preview unavailable'));
+      if (!ok) return fail();
+      const v = makeViewer(l.model, true);
+      v.addEventListener('load', () => {
+        const ld = stage.querySelector('.modal__load'); if (ld) ld.remove();
+        if (!reduce && l.model.animate !== false && v.availableAnimations && v.availableAnimations.length) v.play({ repetitions: Infinity });
+      });
+      v.addEventListener('error', fail);
+      stage.append(v);
+      v.setAttribute('src', l.model.src);
+    });
+  }
+  function closeModal() {
+    if (modal.hidden) return;
+    ++openTok; modal.classList.remove('is-open');
+    modalT = setTimeout(() => { modal.hidden = true; stage.replaceChildren(); document.documentElement.classList.remove('modal-open'); }, reduce ? 0 : 220);
+    if (lastFocus) lastFocus.focus({ preventScroll: true });
+  }
+  modal.addEventListener('click', (e) => { if (e.target.closest('[data-close]') || e.target.closest('#mdClose')) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') return closeModal();
+    if (e.key !== 'Tab') return;
+    const f = $$('button, a[href], model-viewer[camera-controls]', modal);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  // cards
+  let currentVit = null;
+  const near = new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { o.unobserve(e.target); e.target._init(); } }), { rootMargin: '400px 0px' });
+  const seen = new IntersectionObserver((es) => es.forEach(e => { if (!e.isIntersecting) e.target._set(false); }), { threshold: 0.15 });
+
+  function buildVitrine(l) {
+    const m = l.model;
+    const el = h('div', { class: 'vit', role: 'button', tabindex: '0', 'data-sfx': '', 'aria-label': 'Open 3D view of ' + l.name },
+      h('span', { class: 'vit__ph' }, 'Loading 3D'),
+      h('span', { class: 'vit__badge', 'aria-hidden': 'true' }, '3D'),
+      h('span', { class: 'vit__hint', 'aria-hidden': 'true' },
+        h('span', { class: 'hov' }, 'Hover to spin · click to enlarge'),
+        h('span', { class: 'tap' }, 'Tap to spin · tap again to enlarge')),
+      h('span', { class: 'vit__fail' }, '3D preview unavailable'));
+    // MBG AOWKAOKWAOWAKOAKWOWKKOKOAKWOK
+    if (m.bg) el.style.background = m.bg;
+    if (m.light) el.classList.add('is-light');
+    let viewer = null, active = false;
+
+    const apply = () => {
+      if (!viewer) return;
+      viewer.autoRotate = active && !reduce;
+      if (m.animate !== false && viewer.availableAnimations && viewer.availableAnimations.length) {
+        if (active && !reduce) viewer.play({ repetitions: Infinity }); else viewer.pause();
+      }
+    };
+    el._set = (on) => {
+      if (on === active) return;
+      if (on && currentVit && currentVit !== el) currentVit._set(false);   // only one spins at a time
+      active = on; el.classList.toggle('is-active', on);
+      currentVit = on ? el : (currentVit === el ? null : currentVit);
+      apply();
+    };
+    el._init = () => viewerReady().then((ok) => {
+      if (!ok) return el.classList.add('is-failed');
+      viewer = makeViewer(m, false);
+      viewer.addEventListener('load', () => { el.classList.add('is-ready'); apply(); });
+      viewer.addEventListener('error', () => el.classList.add('is-failed'));
+      el.prepend(viewer);
+      viewer.setAttribute('src', m.src);
+    });
+
+    if (hoverable) {
+      el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') el._set(true); });
+      el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') el._set(false); });
+    }
+    // desktop: hover already woke it, so a click enlarges. touch: first tap wakes it, second enlarges.
+    el.addEventListener('click', () => { if (!hoverable && !active) el._set(true); else openModal(l, el); });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(l, el); } });
+    el.addEventListener('focus', () => { if (el.matches(':focus-visible')) el._set(true); });
+    el.addEventListener('blur', () => el._set(false));
+    near.observe(el); seen.observe(el);
+    return el;
+  }
+
   function buildStrata(c) {
     return h('div', { class: 'strata' },
       h('div', { class: 'wrap strata__head' }, h('h3', {}, c.title), h('p', {}, c.blurb)),
       c.layers.map((l, i, arr) =>
         h('div', { class: 'band' + (i === arr.length - 1 ? ' band--dark' : '') + (i % 2 ? ' band--flip' : ''), style: '--c:' + l.color, 'data-reveal': '' },
           h('div', { class: 'wrap band__in' },
-            h('div', { class: 'specimen' }, h('div', { class: 'specimen__img', html: FOSSIL[l.fossil] || '' }), h('p', { class: 'specimen__tag' }, l.era)),
-            h('div', { class: 'band__text' }, h('h3', {}, l.name), h('p', {}, l.note))))));
+            buildVitrine(l),
+            h('div', { class: 'band__text' }, h('p', { class: 'band__era' }, l.era), h('h3', {}, l.name), h('p', {}, l.note), creditEl(l.model))))));
   }
+
   function buildNotebook(c) {
     return h('div', { class: 'notebook' }, h('div', { class: 'wrap' }, h('div', { class: 'page' },
       h('h3', {}, c.shelfTitle),
@@ -238,8 +391,8 @@
   }
 
   /* =====================  04 PROFILE  ===================== */
-    /* ----- card stacks (Play tab) ----- */
-    const STACK_PALETTE = ['#3DFFB5', '#FFE45E', '#FF4D8D'];
+  /* ----- card stacks (Play tab) ----- */
+  const STACK_PALETTE = ['#3DFFB5', '#FFE45E', '#FF4D8D'];
   let lastStart = -1;
   // random colours per stack: no two neighbours match (including last -> first when the deck loops),
   // and a stack never starts with the same colour as the stack before it
@@ -263,7 +416,7 @@
     return 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
   };
 
-     function buildStack(g) {
+  function buildStack(g) {
     const n = g.games.length;
     const colors = pickColors(n);
     const cards = g.games.map((x, i) => {
@@ -349,7 +502,7 @@
     const speak = panel('speak', h('h3', {}, sp.title), sp.blurb && h('p', { class: 'panel__blurb' }, sp.blurb),
       h('ul', { class: 'langs' }, sp.langs.map(l => h('li', { class: 'lang' },
         h('div', {}, h('strong', {}, l.name), l.note && h('p', { class: 'lang__note' }, l.note)),
-        h('div', { class: 'xp', 'aria-hidden': 'true' }, Array.from({ length: 10 }, (_, i) => h('i', { class: i < l.level ? 'on' : '' }))),
+        h('div', { class: 'xp', 'aria-hidden': 'true' }, Array.from({ length: 10 }, (_, i) => h('i', { class: i < l.level ? 'on' + (i === l.level - 1 ? ' last' : '') : '' }))),
         h('span', { class: 'lang__lv' }, l.label)))));
 
     const sd = c.side;
@@ -374,6 +527,11 @@
     });
     list.append(...btns);
     $('#profile').append(h('div', { class: 'wrap' }, head(c.no, c.title, c.blurb), list, tabs.map(t => t[2])));
+
+    // heading letters hop in 8-bit steps
+    const t = $('#profile h2'), txt = t.textContent;
+    t.setAttribute('aria-label', txt);
+    t.replaceChildren(...[...txt].map((ch, i) => h('span', { class: 'hop', 'aria-hidden': 'true', style: '--i:' + i }, ch === ' ' ? '\u00A0' : ch)));
     select(0);
   }
 
@@ -397,7 +555,7 @@
         h('div', {}, h('h2', {}, c.title), h('p', {}, c.blurb)),
         h('div', { class: 'links' }, c.links.map(linkRow))),
       h('footer', { class: 'foot' },
-        h('p', {}, 'Built by hand with HTML, CSS and a little JavaScript. No framework.'),
+        h('p', {}, 'Built with HTML, CSS and a little JavaScript. No framework.'),
         h('p', {}, '© ' + new Date().getFullYear() + ' ' + names.full))));
   }
 
@@ -419,9 +577,13 @@
   }), { rootMargin: '-45% 0px -50% 0px' });
   $$('main > section').forEach(s => io.observe(s));
 
+  // pause CSS animations of sections that are off-screen
+  const live = new IntersectionObserver((es) => es.forEach(e => e.target.classList.toggle('is-off', !e.isIntersecting)), { rootMargin: '80px 0px' });
+  $$('main > section').forEach(s => { s.classList.add('is-off'); live.observe(s); });
+
   // scroll progress
   const bar = $('#progress'); let ticking = false;
-    function onScroll() {
+  function onScroll() {
     if (ticking) return; ticking = true;
     requestAnimationFrame(() => {
       const max = document.documentElement.scrollHeight - innerHeight;
@@ -430,7 +592,7 @@
       ticking = false;
     });
   }
-    // dock: hide while scrolling down, return on scroll up
+  // dock: hide while scrolling down, return on scroll up
   const dock = $('#dock'); let lastY = scrollY, dockHidden = false;
   function dockScroll() {
     const y = scrollY, dy = y - lastY;
@@ -484,7 +646,7 @@
   });
 
   // 2) Konami code
-  const code = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a']; let pos = 0;
+  const code = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a']; let pos = 0;
   addEventListener('keydown', (e) => {
     pos = (e.key.toLowerCase() === code[pos]) ? pos + 1 : (e.key.toLowerCase() === code[0] ? 1 : 0);
     if (pos === code.length) {
@@ -497,13 +659,15 @@
   // 3) a small creature, sometimes, somewhere
   const CRITTERS = [
     { svg: FOSSIL.trilobite, msg: 'A trilobite. The group lasted more than 250 million years before the end-Permian extinction.' },
-    { svg: PLANET,           msg: "Saturn's rings are mostly water ice. Short fact, still a favourite." },
-    { svg: BLOB,             msg: 'A wild pixel appeared. It has no stats and no quest. Please be kind to it.' }
+    { svg: PLANET, msg: "Saturn's rings are mostly water ice. Short fact, still a favourite." },
+    { svg: BLOB, msg: 'A wild pixel appeared. It has no stats and no quest. Please be kind to it.' }
   ];
   function spawnCritter() {
     const c = CRITTERS[Math.floor(Math.random() * CRITTERS.length)];
-    const b = h('button', { class: 'critter', type: 'button', 'aria-label': 'A small hidden creature. Click it.', html: c.svg,
-      style: 'left:' + (5 + Math.random() * 82).toFixed(1) + '%;top:' + (15 + Math.random() * 65).toFixed(1) + '%' });
+    const b = h('button', {
+      class: 'critter', type: 'button', 'aria-label': 'A small hidden creature. Click it.', html: c.svg,
+      style: 'left:' + (5 + Math.random() * 82).toFixed(1) + '%;top:' + (15 + Math.random() * 65).toFixed(1) + '%'
+    });
     b.addEventListener('click', () => { toast(c.msg, 6500); b.remove(); });
     document.body.append(b);
     requestAnimationFrame(() => b.classList.add('on'));

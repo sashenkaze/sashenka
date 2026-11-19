@@ -1,0 +1,65 @@
+/* ---------- 3D vitrines in Field notes ---------- */
+.band__era{margin:0 0 .2rem;font:700 .8rem 'Courier Prime',monospace;opacity:.85}
+.credit{margin:.9rem 0 0;font:.75rem/1.45 'Courier Prime',monospace;opacity:.85}
+.credit a{text-underline-offset:2px}
+
+.vit{position:relative;flex:none;width:min(100%,300px);aspect-ratio:1;overflow:hidden;cursor:pointer;color:#F2E9C9;
+  background:radial-gradient(circle at 50% 38%,#2B3358 0%,#0B1026 72%);border:3px solid #2A1A0F;box-shadow:6px 6px 0 rgba(42,26,15,.45)}
+.vit:focus-visible{outline:3px solid #F2E9C9;outline-offset:3px;box-shadow:0 0 0 7px #0B1026}
+.vit model-viewer{position:absolute;inset:0;width:100%;height:100%;background:transparent;
+  --poster-color:transparent;--progress-bar-color:#E8B04B;--progress-bar-height:3px}
+.vit__ph,.vit__fail{position:absolute;inset:0;display:grid;place-items:center;font:700 .8rem 'Courier Prime',monospace;text-align:center;padding:1rem}
+.vit__ph{opacity:.6}
+.vit.is-ready .vit__ph,.vit.is-failed .vit__ph{display:none}
+.vit__fail{display:none}.vit.is-failed .vit__fail{display:grid}
+.vit__badge{position:absolute;left:.55rem;top:.55rem;z-index:1;padding:.05rem .45rem;border:2px solid #E8B04B;color:#E8B04B;font:700 .7rem 'Courier Prime',monospace}
+.vit__hint{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:.4rem .6rem;background:rgba(11,16,38,.85);
+  font:.7rem 'Courier Prime',monospace;text-align:center;opacity:0;transition:opacity .2s}
+.vit:hover .vit__hint,.vit:focus-visible .vit__hint,.vit.is-active .vit__hint{opacity:1}
+.vit .tap{display:none}
+.vit__badge{background:#0B1026}
+.vit.is-light .vit__ph{color:#2A1A0F}
+@media (hover:none){.vit .hov{display:none}.vit .tap{display:inline}.vit__hint{opacity:1}}
+
+/* ---------- modal ---------- */
+html.modal-open{overflow:hidden}
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:clamp(.6rem,3vw,2rem);opacity:0;transition:opacity .22s ease}
+.modal[hidden]{display:none}
+.modal.is-open{opacity:1}
+.modal__scrim{position:absolute;inset:0;background:rgba(11,16,38,.66);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.modal__panel{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 290px;width:min(1100px,100%);height:min(720px,100%);
+  background:#0B1026;color:#F2E9C9;border:3px solid #E8B04B;box-shadow:8px 8px 0 rgba(0,0,0,.45);scale:.97;transition:scale .22s ease}
+.modal.is-open .modal__panel{scale:1}
+.modal__stage{position:relative;min-height:0;background:radial-gradient(circle at 50% 40%,#2B3358,#0B1026 72%)}
+.modal__stage model-viewer{position:absolute;inset:0;width:100%;height:100%;background:transparent;
+  --poster-color:transparent;--progress-bar-color:#E8B04B;--progress-bar-height:3px}
+.modal__load{position:absolute;inset:0;display:grid;place-items:center;font:700 .85rem 'Courier Prime',monospace;opacity:.7}
+.modal__plaque{padding:1.6rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;border-left:3px solid #E8B04B;font-family:'Fraunces',Georgia,serif;
+  scrollbar-width:none;-ms-overflow-style:none}
+.modal__plaque::-webkit-scrollbar{display:none}
+
+@media (max-width:760px){
+  .modal{padding:.5rem;height:100vh;height:100dvh}
+  .modal__panel{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;height:100%;max-height:100%}
+  .modal__stage{min-height:38vh;min-height:38dvh}
+  .modal__plaque{max-height:36vh;max-height:36dvh;padding:1rem 1rem 1.1rem;border-left:0;border-top:3px solid #E8B04B}
+  .modal__plaque h3{font-size:1.35rem;margin-bottom:.3rem}
+  .modal__plaque p{font-size:.92rem;line-height:1.4}
+  .modal__hint,.modal__plaque .credit{font-size:.68rem}
+  .modal__close{width:40px;height:40px}
+}
+.modal__plaque h3{margin:.1rem 0 .6rem;font-size:1.7rem;font-weight:600;line-height:1.1}
+.modal__plaque p{margin:.4rem 0}
+.modal__era{font:700 .8rem 'Courier Prime',monospace;color:#E8B04B}
+.modal__hint{margin-top:1.2rem!important;font:.75rem 'Courier Prime',monospace;opacity:.7}
+.modal__plaque .credit{margin-top:1.2rem}
+.modal__plaque .credit a{color:#F2E9C9}
+.modal__close{position:absolute;right:.7rem;top:.7rem;z-index:3;display:grid;place-items:center;width:44px;height:44px;
+  background:#0B1026;color:#F2E9C9;border:2px solid #E8B04B}
+.modal__close:hover{background:#E8B04B;color:#0B1026}
+.modal :focus-visible{outline:3px solid #E8B04B;outline-offset:3px}
+.toast{z-index:90}
+@media (max-width:760px){
+  .modal__panel{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;height:100%}
+  .modal__plaque{max-height:40%;border-left:0;border-top:3px solid #E8B04B}
+}

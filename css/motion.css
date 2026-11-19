@@ -81,3 +81,23 @@
   box-shadow:18vw 30px #FF4D8D,31vw -12px #FFE45E,47vw 54px #3DFFB5,63vw 6px #FF4D8D,79vw 40px #FFE45E,90vw -8px #3DFFB5,12vw 160px #FFE45E,70vw 190px #3DFFB5;
   animation:pxtw 2.4s steps(2) infinite alternate}
 @keyframes pxtw{from{opacity:1}to{opacity:.2}}
+
+/* ---- Profile: card stacks, small idle motion ---- */
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -3px}}
+@keyframes flagpulse{50%{color:#FFFFFF}}
+
+/* each stack hops 3px in two 8-bit steps, out of phase with its neighbours */
+.stack{animation:bob 2.6s steps(1) infinite}
+.stack:nth-child(2n){animation-delay:-.7s}
+.stack:nth-child(3n){animation-delay:-1.4s}
+.stack.is-busy{animation-play-state:paused}
+
+/* pixel sparkles on two corners of every stack */
+.stack::before,.stack::after{content:"";position:absolute;width:4px;height:4px;z-index:9;pointer-events:none;
+  animation:pxtw 1.8s steps(2) infinite alternate}
+.stack::before{left:-14px;top:14px;background:#FFE45E;box-shadow:8px -12px 0 #FF4D8D}
+.stack::after{right:-14px;bottom:26px;background:#3DFFB5;box-shadow:-6px 14px 0 #FFE45E;animation-delay:-.9s}
+.stack:nth-child(2n)::before{background:#3DFFB5;box-shadow:8px -12px 0 #FFE45E}
+.stack:nth-child(2n)::after{background:#FF4D8D;box-shadow:-6px 14px 0 #3DFFB5}
+
+.sc__flag{animation:flagpulse 1.6s steps(1) infinite}

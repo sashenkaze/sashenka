@@ -214,7 +214,7 @@
 .cart__flag{position:absolute;right:.4rem;top:.4rem;padding:.2rem .35rem;background:#1B1B2F;color:#FFE45E;font-size:.45rem}
 
 /* card stacks: one pile per genre, centred row, cards may fly out past the panel */
-.stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:3.2rem 1.6rem;margin:1.2rem 0 0;padding:1.6rem 0 2.4rem}
+.stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:3.2rem 2.2rem;margin:1.2rem 0 0;padding:1.6rem 0 2.4rem}
 .stack{position:relative;isolation:isolate;flex:none;display:block;width:112px;height:112px;margin:0;padding:0;
   background:none;border:0;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .stack.is-single{cursor:default}

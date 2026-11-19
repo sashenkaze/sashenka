@@ -16,7 +16,6 @@ window.SITE = {
         photoCaption: "Placeholder. Maybe I'll upload my selfie sometimes.",
         status: [
             { label: "Now", text: "Final year at SMK, majoring in IT" },
-            { label: "Also now", text: "Six-month internship (PKL)" }
         ]
     },
 
@@ -42,41 +41,47 @@ window.SITE = {
         }
     },
 
-      /* ---------- 03 · PROJECTS ----------
-     Aim for 3 to 5. The first one shows large, so put your best one first.
-     Add a project: copy one { ... } block. Remove: delete it (watch the commas).
-     image: screenshot in assets/projects/ (about 1200x750, under 200 KB). "" shows a coloured placeholder.
-     links: a link with an empty href is hidden, so fill it in only when it's real. */
-  projects: {
-    no: "03",
-    title: "Projects",
-    blurb: "A few things I built during school and my internship or... just for fun.",
-    items: [
-      { name: "Project name here", kind: "Internship (PKL)", year: "20XX",
-        tagline: "One line about what it does.",
-        summary: "Two or three sentences: the problem, what you built, and what came out of it.",
-        role: "What you personally did.",
-        stack: ["Tech A", "Tech B", "Tech C"],
-        image: "", imageAlt: "",
-        links: [ { label: "Source code", href: "" }, { label: "Live demo", href: "" } ] },
+    /* ---------- 03 · PROJECTS ----------
+   Aim for 3 to 5. The first one shows large, so put your best one first.
+   Add a project: copy one { ... } block. Remove: delete it (watch the commas).
+   image: screenshot in assets/projects/ (about 1200x750, under 200 KB). "" shows a coloured placeholder.
+   links: a link with an empty href is hidden, so fill it in only when it's real. */
+    projects: {
+        no: "03",
+        title: "Projects",
+        blurb: "A few things I built during school and my internship or... just for fun.",
+        items: [
+            {
+                name: "Project name here", kind: "Internship (PKL)", year: "20XX",
+                tagline: "One line about what it does.",
+                summary: "Two or three sentences: the problem, what you built, and what came out of it.",
+                role: "What you personally did.",
+                stack: ["Tech A", "Tech B", "Tech C"],
+                image: "", imageAlt: "",
+                links: [{ label: "Source code", href: "" }, { label: "Live demo", href: "" }]
+            },
 
-      { name: "Project name here", kind: "School project", year: "20XX",
-        tagline: "One line about what it does.",
-        summary: "Two or three sentences about the project.",
-        role: "Your part in it.",
-        stack: ["Tech A", "Tech B"],
-        image: "", imageAlt: "",
-        links: [ { label: "Source code", href: "" } ] },
+            {
+                name: "Project name here", kind: "School project", year: "20XX",
+                tagline: "One line about what it does.",
+                summary: "Two or three sentences about the project.",
+                role: "Your part in it.",
+                stack: ["Tech A", "Tech B"],
+                image: "", imageAlt: "",
+                links: [{ label: "Source code", href: "" }]
+            },
 
-      { name: "Project name here", kind: "School project", year: "20XX",
-        tagline: "One line about what it does.",
-        summary: "Two or three sentences about the project.",
-        role: "Your part in it.",
-        stack: ["Tech A", "Tech B"],
-        image: "", imageAlt: "",
-        links: [] }
-    ]
-  },
+            {
+                name: "Project name here", kind: "School project", year: "20XX",
+                tagline: "One line about what it does.",
+                summary: "Two or three sentences about the project.",
+                role: "Your part in it.",
+                stack: ["Tech A", "Tech B"],
+                image: "", imageAlt: "",
+                links: []
+            }
+        ]
+    },
 
     /* ---------- 03 · FIELD NOTES ---------- */
     notes: {
@@ -103,12 +108,47 @@ window.SITE = {
 
         strata: {
             title: "Strata",
-            blurb: "Paleontology: reading deep time out of rock. Younger layers on top, older ones underneath.",
-            // fossil: "tooth" | "ammonite" | "trilobite".  dark: true for the deepest layer (light text).
+            blurb: "Paleontology: reading deep time out of rock. Younger layers on top, older ones underneath. Hover a specimen to spin it, click to enlarge.",
+            // orbit: camera angle "theta phi radius". exposure: 1 is normal. zoom: [closest, farthest].
+            // shadow: 0 turns the floor shadow off. animate: false keeps the model still.
             layers: [
-                { era: "Late Cretaceous", name: "Tyrannosaurus rex", fossil: "tooth", color: "#C9A27A", note: "Roughly 68 to 66 million years ago, close to the end of the non-avian dinosaurs." },
-                { era: "Mesozoic", name: "Ammonite", fossil: "ammonite", color: "#B9855A", note: "Coiled shell-bearers that vanished in the same extinction. Their shells are everywhere in the rock record." },
-                { era: "Paleozoic", name: "Trilobite", fossil: "trilobite", color: "#8C5A3C", note: "Armoured arthropods with more than 250 million years of history before the end-Permian extinction." }
+                {
+                    era: "Miocene to Pliocene", name: "Megalodon tooth", color: "#C9A27A",
+                    note: "Otodus megalodon swam from roughly 23 to 3.6 million years ago. Shark skeletons are cartilage and rarely fossilise, so teeth are most of what we have.",
+                    model: {
+                        src: "assets/models/megalodon-tooth.glb", poster: "", orbit: "", exposure: "1", zoom: ["60%", "220%"],
+                        alt: "3D model of a fossil megalodon tooth, a broad triangle with serrated edges.",
+                        title: "Megalodon Teeth Fossil", source: "https://skfb.ly/oWPBA",
+                        author: "huykhoi2407", authorUrl: "https://sketchfab.com/huykhoi2407",
+                        license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/"
+                    }
+                },
+
+                {
+                    era: "Amber fossil", name: "Mosquito in amber", color: "#B9855A",
+                    note: "Resin buries small animals whole, down to wing veins and hairs. Mosquitoes are known from the Cretaceous onward. The Jurassic Park idea of cloning from them doesn't work, because DNA doesn't last that long.",
+                    model: {
+                        src: "assets/models/mosquito-amber.glb", poster: "", orbit: "", exposure: "2", zoom: ["70%", "180%"], shadow: 0,
+                        alt: "3D model of a mosquito preserved inside a small chunk of amber.",
+                        title: "Mosquito in amber", source: "https://skfb.ly/6xWCO",
+                        author: "Loïc Norgeot", authorUrl: "https://sketchfab.com/norgeotloic",
+                        also: { label: "Geoffrey Marchal", url: "https://sketchfab.com/geoffreymarchal" },
+                        modified: "compressed for web, glass material added",
+                        license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/"
+                    }
+                },
+
+                {
+                    era: "Cambrian", name: "Hallucigenia", color: "#8C5A3C",
+                    note: "A worm-like animal with spines along its back. Early reconstructions got it upside down, taking the spines for legs. The name comes from hallucination.",
+                    model: {
+                        src: "assets/models/hallucigenia.glb", poster: "", orbit: "", exposure: "1", zoom: ["60%", "220%"], animate: false,
+                        alt: "3D model of Hallucigenia, a worm-like Cambrian animal with paired spines along its back.",
+                        title: "Hallucigenia Cambrian Animal", source: "https://skfb.ly/oWOTF",
+                        author: "huykhoi2407", authorUrl: "https://sketchfab.com/huykhoi2407",
+                        license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/"
+                    }
+                }
             ]
         },
 
@@ -153,7 +193,7 @@ window.SITE = {
                         { name: "Celeste", icon: "assets/games/celeste.jpg" },
                         { name: "Ori and the Blind Forest", icon: "assets/games/ori.webp" },
                         { name: "Dead Cells", icon: "assets/games/dead-cells.jpg" },
-                        { name: "Hyper Light Drifter", icon: "assets/games/hld.png"},
+                        { name: "Hyper Light Drifter", icon: "assets/games/hld.png" },
                     ]
                 },
                 {
@@ -204,10 +244,8 @@ window.SITE = {
                 { name: "Regional languages", level: 3, label: "A little" },
                 { name: "English", level: 6, label: "Intermediate" },
                 { name: "Japanese", level: 3, label: "Learning", note: "OMW to N5." },
-                { name: "Arabic", level: 2, label: "A little" },
+                { name: "Arabic", level: 2, label: "A few words" },
                 { name: "German", level: 1, label: "A few words" },
-                { name: "Mandarin", level: 1, label: "A few words" },
-                { name: "Russian", level: 1, label: "A few words" }
             ]
         },
 
