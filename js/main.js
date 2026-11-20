@@ -189,50 +189,21 @@
   }
 
   /* =====================  03 FIELD NOTES  ===================== */
-  function buildSky(c) {
-    const svg = svgEl('svg', { viewBox: '0 0 300 340', class: 'sky__svg', role: 'group', 'aria-label': 'Orion constellation, interactive' });
-    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 46; i++) {
-      const tw = i < 7;   // the first 7 background stars twinkle
-      const a = { cx: (rnd() * 300).toFixed(1), cy: (rnd() * 340).toFixed(1), r: (rnd() * 1.1 + 0.3).toFixed(2), fill: '#F2E9C9', opacity: (rnd() * 0.5 + 0.2).toFixed(2) };
-      if (tw) { a.class = 'tw'; a.style = '--d:' + (3 + (i % 4)) + 's;--dl:-' + (i * 0.9).toFixed(1) + 's'; }
-      svg.append(svgEl('circle', a));
-    }
-    c.lines.forEach(([a, b]) => {
-      const A = c.stars[a], B = c.stars[b];
-      svg.append(svgEl('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: 'sky__line' }));
-    });
-    const note = h('div', { class: 'sky__note', 'aria-live': 'polite' }, h('p', {}, 'Tap a star.'));
-    const gs = c.stars.map((s, i) => {
-      const g = svgEl('g', { class: 'sky__star', tabindex: '0', role: 'button', 'aria-label': s.name, 'data-sfx': '' });
-      g.append(svgEl('circle', { cx: s.x, cy: s.y, r: 15, fill: 'transparent' }));
-            g.append(svgEl('circle', { class: 'dot' + ([0, 3, 6].includes(i) ? ' tw' : ''), cx: s.x, cy: s.y, r: s.r, style: '--d:' + (4 + i) + 's;--dl:-' + i + 's' }));
-      const label = svgEl('text', { x: s.x + 11, y: s.y + 4, class: 'sky__label' }); label.textContent = s.name; g.append(label);
-      const pick = () => {
-        gs.forEach(x => x.classList.remove('is-on')); g.classList.add('is-on');
-        note.replaceChildren(h('h3', {}, s.name), h('p', { class: 'sky__type' }, s.kind), h('p', {}, s.note));
-      };
-      g.addEventListener('click', pick);
-      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-      svg.append(g);
-      return g;
-    });
-    return h('div', { class: 'wrap sky' }, svg, h('div', { class: 'sky__text' }, h('h3', {}, c.title), h('p', {}, c.blurb), note));
-  }
-    /* ----- 3D specimens (Field notes) ----- */
+
+  /* ----- 3D specimens (Field notes) ----- */
   const hoverable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-    let decoderSet = false;
+  let decoderSet = false;
   function viewerReady() {
     const ready = customElements.get('model-viewer')
       ? Promise.resolve(true)
       : Promise.race([
-          customElements.whenDefined('model-viewer').then(() => true),
-          new Promise(r => setTimeout(() => r(false), 8000))
-        ]);
+        customElements.whenDefined('model-viewer').then(() => true),
+        new Promise(r => setTimeout(() => r(false), 8000))
+      ]);
     return ready.then((ok) => {
       if (ok && !decoderSet) {
         decoderSet = true;   // teach model-viewer how to read meshopt-compressed files
-        try { customElements.get('model-viewer').meshoptDecoderLocation = 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.1/meshopt_decoder.js'; } catch (e) {}
+        try { customElements.get('model-viewer').meshoptDecoderLocation = 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.1/meshopt_decoder.js'; } catch (e) { }
       }
       return ok;
     });
@@ -386,8 +357,310 @@
       h('h3', {}, c.howTitle),
       c.howIWork.map(t => h('p', {}, t)))));
   }
+  /* ----- Life of a star (Field notes) ----- */
+    /* ----- space background: stars drift, and streak past while the stage changes ----- */
+  function makeSpace(canvas) {
+    const ctx = canvas.getContext('2d');
+    const COL = ['242,233,201', '255,224,138', '143,184,255'];
+    const stars = Array.from({ length: 120 }, () => ({
+      a: Math.random() * 6.283, r: Math.sqrt(Math.random()) * 1.1, d: 0.35 + Math.random() * 0.9,
+      s: 0.6 + Math.random() * 1.3, p: Math.random() * 6.283, c: COL[Math.floor(Math.random() * 3)]
+    }));
+    const PEAK = 1.7, DUR = 1300;                 // streak speed and travel time: tune here
+    let W = 0, H = 0, raf = 0, last = 0, active = false, tr = null;
+    function draw(now, speed, dt) {
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2, cy = H * 0.52, R = Math.hypot(W, H) * 0.55, moving = Math.abs(speed) > 0.04;
+      for (const s of stars) {
+        if (speed) {
+          s.r += speed * s.d * dt;
+          if (s.r > 1.25) { s.r = Math.random() * 0.1; s.a = Math.random() * 6.283; }
+          else if (s.r < 0.02) { s.r = 1 + Math.random() * 0.25; s.a = Math.random() * 6.283; }
+        }
+        const cs = Math.cos(s.a), sn = Math.sin(s.a), x = cx + cs * s.r * R, y = cy + sn * s.r * R, fade = Math.min(1, s.r * 4);
+        if (moving) {
+          const len = Math.abs(speed) * s.d * 0.08, r0 = Math.max(0, s.r - Math.sign(speed) * len);
+          ctx.strokeStyle = 'rgba(' + s.c + ',' + (0.85 * fade).toFixed(2) + ')'; ctx.lineWidth = s.s * 0.9;
+          ctx.beginPath(); ctx.moveTo(cx + cs * r0 * R, cy + sn * r0 * R); ctx.lineTo(x, y); ctx.stroke();
+        } else {
+          const tw = reduce ? 0.8 : 0.5 + 0.5 * Math.sin(now / 900 * s.d + s.p);
+          ctx.fillStyle = 'rgba(' + s.c + ',' + ((0.25 + 0.65 * tw) * fade).toFixed(2) + ')';
+          ctx.beginPath(); ctx.arc(x, y, s.s * 0.75, 0, 6.283); ctx.fill();
+        }
+      }
+    }
+    function resize() {
+      const b = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = b.width; H = b.height;
+      canvas.width = Math.max(1, Math.round(W * dpr)); canvas.height = Math.max(1, Math.round(H * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(performance.now(), 0, 0);
+    }
+    function frame(now) {
+      raf = requestAnimationFrame(frame);
+      if (!tr && now - last < 60) return;           // idle twinkle: about 16 fps is plenty
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      let speed = 0;
+      if (tr) { const t = (now - tr.t0) / DUR; if (t >= 1) tr = null; else speed = tr.dir * PEAK * Math.sin(Math.PI * t); }
+      draw(now, speed, dt);
+    }
+    return {
+      resize,
+      run(on) { if (on === active) return; active = on; if (on && !reduce) { last = performance.now(); raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; } },
+      travel(dir) { if (!reduce && active) tr = { t0: performance.now(), dir }; }
+    };
+  }
+
+  /* ----- Life of a star (Field notes) ----- */
+  function buildCycle(c) {
+    const A = window.CYCLE_ART || {};
+    if (A.defs && !document.getElementById('cycle-defs')) document.body.insertAdjacentHTML('beforeend', A.defs);
+    const nodes = c.nodes, M = c.mass, Z = M.zones;
+    const T = { brown: Z[0].to, red: Z[1].to, sun: Z[2].to, bh: Z[3].to, pair: Z[4].to };
+    const state = { mass: M.start, wd: 'cool', ns: 'pulsar', core: 'direct' };
+    const zoneOf = (m) => Z.find(z => m < z.to) || Z[Z.length - 1];
+
+    // which way each fork goes, given the current state
+    const pick = {
+      protostar:  (s) => s.mass < T.brown ? 'brown' : s.mass < T.red ? 'reddwarf' : s.mass < T.sun ? 'sunlike' : 'massive',
+      supergiant: (s) => s.mass >= T.pair ? 'pair' : 'ironcore',
+      ironcore:   (s) => s.mass < T.bh ? 'supernova' : (s.core === 'supernova' ? 'supernova' : 'direct'),
+      supernova:  (s) => s.mass < T.bh ? 'neutron' : 'blackhole',
+      whitedwarf: (s) => s.wd === 'binary' ? 'typeIa' : 'blackdwarf',
+      neutron:    (s) => s.ns
+    };
+    // what a click on an option changes (mass, or a variant)
+    const within = (lo, hi) => state.mass >= lo && state.mass < hi;
+    const choose = {
+      protostar: {
+        brown:    () => { if (!within(0, T.brown)) state.mass = 0.05; },
+        reddwarf: () => { if (!within(T.brown, T.red)) state.mass = 0.25; },
+        sunlike:  () => { if (!within(T.red, T.sun)) state.mass = 1; },
+        massive:  () => { if (state.mass < T.sun) state.mass = 15; }
+      },
+      supergiant: { ironcore: () => { if (state.mass >= T.pair) state.mass = 60; }, pair: () => { if (state.mass < T.pair) state.mass = 160; } },
+      ironcore:   { supernova: () => { state.core = 'supernova'; }, direct: () => { state.core = 'direct'; if (state.mass < T.bh) state.mass = 40; } },
+      supernova:  { neutron: () => { if (state.mass >= T.bh) state.mass = 15; }, blackhole: () => { if (state.mass < T.bh) state.mass = 40; state.core = 'supernova'; } },
+      whitedwarf: { blackdwarf: () => { state.wd = 'cool'; }, typeIa: () => { state.wd = 'binary'; } },
+      neutron:    { pulsar: () => { state.ns = 'pulsar'; }, magnetar: () => { state.ns = 'magnetar'; }, kilonova: () => { state.ns = 'kilonova'; } }
+    };
+    const massForks = new Set(['protostar', 'supergiant', 'ironcore', 'supernova']);
+
+    function pathOf() {
+      const arr = []; let id = c.start || 'cloud';
+      while (id && arr.length < 30) {
+        arr.push(id);
+        const n = nodes[id]; if (!n.next) break;
+        id = n.next.length === 1 ? n.next[0].to : (pick[id] ? pick[id](state) : n.next[0].to);
+      }
+      return arr;
+    }
+
+    let path = [], idx = 0, curId = null, ready = false, inView = false, layer = null;
+    const bodies = new Map();
+
+    /* ----- mass slider ----- */
+    const lmin = Math.log10(M.min), lmax = Math.log10(M.max);
+    const toMass = (v) => Math.pow(10, lmin + (lmax - lmin) * v / 1000);
+    const toVal = (m) => Math.round((Math.log10(m) - lmin) / (lmax - lmin) * 1000);
+    const pos = (m) => (Math.log10(m) - lmin) / (lmax - lmin) * 100;
+    const fmt = (m) => m < 1 ? m.toFixed(2) : m < 10 ? m.toFixed(1) : String(Math.round(m));
+
+    const massInput = h('input', { class: 'cmass__in', type: 'range', min: 0, max: 1000, step: 1, value: toVal(state.mass),
+      'aria-label': 'Birth mass in solar masses, log scale', 'aria-describedby': 'cmass-help' });
+    const readout = h('p', { class: 'cmass__read' });
+    function renderMass() {
+      const m = state.mass, z = zoneOf(m);
+      const unsure = (M.unsure || []).some(([lo, hi]) => m >= lo && m <= hi);
+      readout.replaceChildren(h('b', {}, fmt(m) + ' solar masses'), ' · ' + z.name + ': ' + z.result,
+        unsure && h('small', {}, 'Near a striped edge. Scientists are not sure which way this goes.'));
+      massInput.setAttribute('aria-valuetext', fmt(m) + ' solar masses, ' + z.name + (unsure ? ', outcome uncertain' : ''));
+    }
+    function syncMass() { massInput.value = toVal(state.mass); renderMass(); }
+
+    const massBlock = h('div', { class: 'cmass' },
+      h('div', { class: 'cmass__top' }, h('span', { class: 'cmass__lab' }, 'BIRTH MASS'), readout),
+      h('div', { class: 'cmass__names', 'aria-hidden': 'true' }, Z.map(z => h('span', { style: 'left:' + ((pos(z.from) + pos(z.to)) / 2).toFixed(2) + '%' }, z.name))),
+      h('div', { class: 'cmass__wrap' },
+        h('div', { class: 'cmass__bar', 'aria-hidden': 'true' },
+          Z.map(z => h('span', { class: 'cmass__z', style: '--c:' + z.color + ';width:' + (pos(z.to) - pos(z.from)).toFixed(3) + '%' })),
+          (M.unsure || []).map(([lo, hi]) => h('span', { class: 'cmass__u', style: 'left:' + pos(lo).toFixed(2) + '%;width:' + (pos(hi) - pos(lo)).toFixed(2) + '%' }))),
+        massInput),
+      h('div', { class: 'cmass__ticks', 'aria-hidden': 'true' },
+        [{ to: M.min }].concat(Z).map(z => h('span', { style: 'left:' + pos(z.to).toFixed(2) + '%' }, String(z.to)))),
+      h('p', { class: 'cmass__leg', id: 'cmass-help' }, 'Drag to change the star. Striped bands: the boundary there is still uncertain. Numbers are in Suns.'));
+
+    /* ----- text (fades) ----- */
+    function body(id) {
+      if (bodies.has(id)) return bodies.get(id);
+      const n = nodes[id];
+      const facts = (n.facts || []).map(([k, v]) => [h('dt', {}, k), h('dd', {}, v)]);
+      const opts = n.next && n.next.length > 1 && choose[id];
+      const el = h('article', { class: 'cbody', role: 'group', 'aria-label': n.title },
+        h('p', { class: 'cslide__tag' }, n.tag),
+        h('h4', {}, n.title),
+        n.aka && h('p', { class: 'cslide__aka' }, n.aka),
+        h('p', {}, n.text),
+        facts.length > 0 && h('dl', { class: 'cfacts' }, facts),
+        n.imageCredit && h('p', { class: 'credit' }, n.imageCredit),
+        opts && h('div', { class: 'cchoices', role: 'group', 'aria-label': n.ask || 'Possibilities' },
+          h('p', { class: 'cchoices__q' }, n.ask || 'Which way?'),
+          n.next.map(o => h('button', { class: 'cchoice', type: 'button', 'data-to': o.to, 'aria-pressed': 'false',
+            onclick: () => { if (choose[id][o.to]) choose[id][o.to](); update('opt'); } },
+            h('b', {}, o.label), o.hint && h('span', {}, o.hint))),
+          massForks.has(id) && h('p', { class: 'cchoices__note' }, 'The mass slider above also picks one of these.')),
+        !n.next && h('div', { class: 'cend' },
+          h('p', {}, n.end || 'End of this path.'),
+          h('div', { class: 'cend__btns' },
+            h('button', { type: 'button', onclick: () => massInput.focus() }, 'Try another mass'),
+            h('button', { type: 'button', onclick: () => restart() }, 'Start over'))));
+      bodies.set(id, el);
+      return el;
+    }
+    const stageText = h('div', { class: 'ctext' });
+    function buildBodies() { stageText.replaceChildren(...path.map(body)); }
+    function refreshChosen() {
+      path.forEach((id, k) => {
+        $$('.cchoice', body(id)).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.to === path[k + 1])));
+      });
+    }
+
+    /* ----- space + artwork ----- */
+    const canvas = h('canvas', { 'aria-hidden': 'true' });
+    const space = makeSpace(canvas);
+    const dot = h('span', { class: 'csize__dot' }), lab = h('span', { class: 'csize__lab' });
+    const tick = (r, t) => h('span', { class: 'csize__tick', style: 'left:' + ((Math.log10(r) + 5.2) / 8.4 * 100).toFixed(2) + '%' }, h('i', {}, t));
+    const sizeBox = h('div', { class: 'csize is-none', 'aria-hidden': 'true' },
+      h('div', { class: 'csize__line' }, tick(0.0092, 'Earth'), tick(1, 'Sun'), dot), lab,
+      h('span', { class: 'csize__cap' }, 'size, log scale'));
+    const view = h('div', { class: 'cview' }, canvas, sizeBox);
+
+    function makeLayer(id) {
+      const n = nodes[id], el = h('div', { class: 'lay' });
+      if (n.image) el.append(h('img', { src: n.image, alt: n.imageAlt || '', decoding: 'async' }));
+      else el.innerHTML = A[n.art] ? A[n.art]() : '';
+      if (A.hydrate) A.hydrate(el, n.art);
+      return el;
+    }
+    function showArt(id, dir, from, instant) {
+      const nl = makeLayer(id), old = layer; layer = nl;
+      view.style.setProperty('--tint', (A.tint && A.tint[id]) || '#18204A');
+      if (instant || reduce) {
+        nl.classList.add('is-in', 'no-anim'); view.append(nl); if (old) old.remove();
+        requestAnimationFrame(() => nl.classList.remove('no-anim'));
+        return;
+      }
+      const special = (from === 'cloud' && id === 'protostar') ? 'collapse' : (from === 'protostar' && id === 'cloud') ? 'expand' : '';
+      nl.classList.add(special === 'collapse' ? 'pre-ignite' : special === 'expand' ? 'pre-expand' : (dir > 0 ? 'pre-fwd' : 'pre-back'));
+      view.append(nl); void nl.offsetWidth;        // let the start pose register
+      if (old) {
+        old.classList.remove('is-in', 'late');
+        old.classList.add(special === 'collapse' ? 'out-collapse' : (dir > 0 ? 'out-fwd' : 'out-back'));
+        setTimeout(() => old.remove(), 1200);
+      }
+      nl.classList.remove('pre-ignite', 'pre-expand', 'pre-fwd', 'pre-back');
+      nl.classList.add('is-in'); if (special) nl.classList.add('late');
+    }
+    function setSize(id) {
+      const s = c.sizes && c.sizes[id];
+      sizeBox.classList.toggle('is-none', !s);
+      if (!s) return;
+      const p = Math.max(0, Math.min(100, (Math.log10(s.r) + 5.2) / 8.4 * 100));
+      dot.style.left = p + '%'; lab.style.left = Math.max(16, Math.min(84, p)) + '%'; lab.textContent = s.t;
+    }
+
+    /* ----- the row of stage cards ----- */
+    const chev = (d) => h('span', { html: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>' });
+    const prevBtn = h('button', { class: 'cdeck__btn', type: 'button', 'aria-label': 'Previous stage', onclick: () => go(idx - 1) }, chev('M15 5l-7 7 7 7'));
+    const nextBtn = h('button', { class: 'cdeck__btn', type: 'button', 'aria-label': 'Next stage', onclick: () => go(idx + 1) }, chev('M9 5l7 7-7 7'));
+    const deckTrack = h('div', { class: 'cdeck__track' });
+    const deckView = h('div', { class: 'cdeck__view' }, deckTrack);
+    const live = h('p', { class: 'sr', 'aria-live': 'polite' });
+    function buildDeck() {
+      deckTrack.replaceChildren(...path.map((id, k) => h('button', { class: 'dcard', type: 'button',
+        style: '--o:' + ((A.orb && A.orb[id]) || '#fff'), 'aria-label': 'Stage ' + (k + 1) + ': ' + nodes[id].title, onclick: () => go(k) },
+        h('span', { class: 'dcard__n' }, 'Stage ' + (k + 1)), h('span', { class: 'dcard__orb', 'aria-hidden': 'true' }), h('b', {}, nodes[id].short || nodes[id].title))));
+    }
+    function centerDeck() {
+      const cur = deckTrack.children[idx]; if (!cur) return;
+      deckTrack.style.transform = 'translateX(' + Math.round(deckView.clientWidth / 2 - (cur.offsetLeft + cur.offsetWidth / 2)) + 'px)';
+    }
+    function decorateDeck() {
+      [...deckTrack.children].forEach((el, k) => {
+        el.classList.toggle('is-cur', k === idx); el.style.setProperty('--dist', Math.abs(k - idx));
+        if (k === idx) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
+      });
+      centerDeck();
+    }
+
+    /* ----- moving around ----- */
+    function go(i, o) {
+      o = o || {};
+      const to = Math.max(0, Math.min(path.length - 1, i)), id = path[to], from = curId;
+      const dir = to >= idx ? 1 : -1, changed = id !== from;
+      idx = to; curId = id;
+      path.forEach(pid => { const el = body(pid), on = pid === id; el.classList.toggle('is-cur', on); el.inert = !on; el.setAttribute('aria-hidden', String(!on)); });
+      decorateDeck();
+      prevBtn.disabled = idx === 0; nextBtn.disabled = idx >= path.length - 1;
+      live.textContent = 'Stage ' + (idx + 1) + ' of ' + path.length + ': ' + nodes[id].title;
+      if (ready && changed) { showArt(id, dir, from); space.travel(dir); setSize(id); }
+      if (o.focus) { const t = body(id).querySelector('h4'); t.tabIndex = -1; t.focus({ preventScroll: true }); }
+    }
+    function update(src) {
+      const old = path, nw = pathOf();
+      const same = old.length === nw.length && old.every((v, k) => v === nw[k]);
+      syncMass();
+      if (same) { refreshChosen(); return; }
+      path = nw;
+      let diff = 0; while (diff < old.length && diff < path.length && old[diff] === path[diff]) diff++;
+      buildDeck(); buildBodies(); refreshChosen();
+      go(old.length ? Math.min(diff, path.length - 1) : 0, { focus: src === 'opt' });
+    }
+    function restart() {
+      state.mass = M.start; state.wd = 'cool'; state.ns = 'pulsar'; state.core = 'direct';
+      update('opt'); go(0, { focus: true });
+    }
+
+    massInput.addEventListener('input', () => { state.mass = toMass(+massInput.value); renderMass(); update('mass'); });
+
+    const stage = h('div', { class: 'cstage2', tabindex: '0', role: 'region', 'aria-roledescription': 'carousel',
+      'aria-label': 'Life of a star. Left and right arrow keys change the stage.' }, view, stageText);
+    const root = h('div', { class: 'wrap cycle' },
+      h('div', { class: 'cycle__head' }, h('h3', {}, c.title), c.lead && h('p', { class: 'cycle__lead' }, c.lead), h('p', {}, c.blurb)),
+      massBlock,
+      h('div', { class: 'cdeck' }, prevBtn, deckView, nextBtn), live,
+      stage,
+      c.sources && h('details', { class: 'csrc' }, h('summary', {}, 'Sources and caveats'),
+        c.sourcesNote && h('p', {}, c.sourcesNote),
+        h('ul', {}, c.sources.map(s => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.label))))));
+
+    root.addEventListener('keydown', (e) => {
+      if (e.target === massInput) return;
+      if (e.key === 'ArrowRight') { go(idx + 1); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft') { go(idx - 1); e.preventDefault(); }
+    });
+    let sx = 0, sy = 0, sid = null;
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') return; sx = e.clientX; sy = e.clientY; sid = e.pointerId; });
+    stage.addEventListener('pointerup', (e) => {
+      if (sid !== e.pointerId) return; sid = null;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) go(idx + (dx < 0 ? 1 : -1));
+    });
+
+    update('init');
+    requestAnimationFrame(() => {                    // needs layout, so wait until it is on the page
+      ready = true;
+      space.resize(); showArt(curId, 1, null, true); setSize(curId);
+      deckTrack.classList.add('no-anim'); decorateDeck();
+      requestAnimationFrame(() => deckTrack.classList.remove('no-anim'));
+      if ('ResizeObserver' in window) new ResizeObserver(() => { space.resize(); centerDeck(); }).observe(view);
+      if ('IntersectionObserver' in window) new IntersectionObserver((es) => { inView = es[0].isIntersecting; space.run(inView && !document.hidden); }, { threshold: 0.05 }).observe(root);
+      document.addEventListener('visibilitychange', () => space.run(inView && !document.hidden));
+    });
+    return root;
+  }
+
   function renderNotes(c) {
-    $('#notes').append(h('div', { class: 'wrap' }, head(c.no, c.title, c.blurb)), buildSky(c.sky), buildStrata(c.strata), buildNotebook(c));
+    $('#notes').append(h('div', { class: 'wrap' }, head(c.no, c.title, c.blurb)), buildCycle(c.cycle), buildStrata(c.strata), buildNotebook(c));
   }
 
   /* =====================  04 PROFILE  ===================== */
@@ -502,7 +775,13 @@
     const speak = panel('speak', h('h3', {}, sp.title), sp.blurb && h('p', { class: 'panel__blurb' }, sp.blurb),
       h('ul', { class: 'langs' }, sp.langs.map(l => h('li', { class: 'lang' },
         h('div', {}, h('strong', {}, l.name), l.note && h('p', { class: 'lang__note' }, l.note)),
-        h('div', { class: 'xp', 'aria-hidden': 'true' }, Array.from({ length: 10 }, (_, i) => h('i', { class: i < l.level ? 'on' + (i === l.level - 1 ? ' last' : '') : '' }))),
+        h('div', { class: 'xp', 'aria-hidden': 'true' }, Array.from({ length: 10 }, (_, i) => {
+          const last = i === l.level - 1;
+          return h('i', {
+            class: i < l.level ? 'on' + (last ? ' last' : '') : '',
+            style: last ? '--d:' + (0.9 + Math.random() * 1.6).toFixed(2) + 's;--dl:-' + (Math.random() * 3).toFixed(2) + 's' : null
+          });
+        })),
         h('span', { class: 'lang__lv' }, l.label)))));
 
     const sd = c.side;

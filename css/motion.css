@@ -75,7 +75,7 @@
 .profile .meter span:nth-child(n){background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 8px,transparent 8px 16px);
   background-size:16px 100%;animation:shim 1.2s steps(4) infinite}
 @keyframes shim{to{background-position:16px 0}}
-.xp i.last{animation:blink 1.2s steps(1) infinite}
+.xp i.last{animation:blink var(--d,1.2s) steps(1) var(--dl,0s) infinite}
 
 #profile::after{content:"";position:absolute;left:6vw;top:5.5rem;width:4px;height:4px;background:#3DFFB5;z-index:-1;pointer-events:none;
   box-shadow:18vw 30px #FF4D8D,31vw -12px #FFE45E,47vw 54px #3DFFB5,63vw 6px #FF4D8D,79vw 40px #FFE45E,90vw -8px #3DFFB5,12vw 160px #FFE45E,70vw 190px #3DFFB5;
