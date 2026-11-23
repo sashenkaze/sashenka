@@ -369,12 +369,12 @@
     }));
     const PEAK = 1.7, DUR = TRAVEL;                 // streak speed and travel time: tune here
     let W = 0, H = 0, raf = 0, last = 0, active = false, tr = null;
-    let occNew = [], occOld = [], occT = 0;       // solid cores of the art: stars are hidden behind them
+    let box = null, occNew = [], occOld = [], occT = 0;       // solid cores of the art: stars are hidden behind them
     function carve(now) {
       let kn = 1, ko = 0;
       if (occT) { const t = (now - occT) / TRAVEL; if (t >= 1) { occT = 0; occOld = []; } else { kn = Math.max(0, Math.min(1, (t - 0.5) * 2)); ko = Math.max(0, 1 - t * 2); } }
       if (!occNew.length && !occOld.length) return;
-      const lw = 0.88 * W, lh = 0.76 * H, sc = Math.min(lw / 280, lh / 200), ox = 0.06 * W + (lw - 280 * sc) / 2, oy = 0.04 * H + (lh - 200 * sc) / 2;
+      const B = box || { x: 0.06 * W, y: 0.04 * H, w: 0.88 * W, h: 0.76 * H }, sc = Math.min(B.w / 280, B.h / 200), ox = B.x + (B.w - 280 * sc) / 2, oy = B.y + (B.h - 200 * sc) / 2;
       ctx.save(); ctx.globalCompositeOperation = 'destination-out';
       [[occOld, ko], [occNew, kn]].forEach(([list, k]) => {
         if (k <= 0) return;
@@ -388,7 +388,7 @@
     }
     function draw(now, speed, dt) {
       ctx.clearRect(0, 0, W, H);
-      const cx = W / 2, cy = H * 0.52, R = Math.hypot(W, H) * 0.55, moving = Math.abs(speed) > 0.04;
+      const cx = box ? box.x + box.w / 2 : W / 2, cy = box ? box.y + box.h / 2 : H * 0.52, R = Math.hypot(W, H) * 0.55, k = Math.max(0.6, Math.min(1, H / 420)), moving = Math.abs(speed) > 0.04;
       for (const s of stars) {
         if (speed) {
           s.r += speed * s.d * dt;
@@ -398,12 +398,12 @@
         const cs = Math.cos(s.a), sn = Math.sin(s.a), x = cx + cs * s.r * R, y = cy + sn * s.r * R, fade = Math.min(1, s.r * 4);
         if (moving) {
           const len = Math.abs(speed) * s.d * 0.08, r0 = Math.max(0, s.r - Math.sign(speed) * len);
-          ctx.strokeStyle = 'rgba(' + s.c + ',' + (0.85 * fade).toFixed(2) + ')'; ctx.lineWidth = s.s * 0.9;
+          ctx.strokeStyle = 'rgba(' + s.c + ',' + (0.85 * fade).toFixed(2) + ')'; ctx.lineWidth = s.s * 0.9 * k;
           ctx.beginPath(); ctx.moveTo(cx + cs * r0 * R, cy + sn * r0 * R); ctx.lineTo(x, y); ctx.stroke();
         } else {
           const tw = reduce ? 0.8 : 0.5 + 0.5 * Math.sin(now / 900 * s.d + s.p);
           ctx.fillStyle = 'rgba(' + s.c + ',' + ((0.25 + 0.65 * tw) * fade).toFixed(2) + ')';
-          ctx.beginPath(); ctx.arc(x, y, s.s * 0.75, 0, 6.283); ctx.fill();
+          ctx.beginPath(); ctx.arc(x, y, s.s * 0.75 * k, 0, 6.283); ctx.fill();
         }
       }
       carve(now);
@@ -424,6 +424,7 @@
     }
     return {
       resize,
+      setBox(b) { box = b; if (!raf && W) draw(performance.now(), 0, 0); },
       setOcc(list, animate) {
         occOld = occNew; occNew = list || [];
         occT = animate && !reduce && active ? performance.now() : 0; if (!occT) occOld = [];
@@ -542,6 +543,23 @@
       return el;
     }
     const stageText = h('div', { class: 'ctext' });
+    const arrow = (dir) => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="' + (dir > 0 ? 'M6 9l6 6 6-6' : 'M6 15l6-6 6 6') + '" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const hDown = h('button', { class: 'chint chint--dn', type: 'button', tabindex: '-1', 'aria-label': 'Scroll down for more', html: arrow(1),
+      onclick: () => stageText.scrollTo({ top: stageText.scrollHeight, behavior: reduce ? 'instant' : 'smooth' }) });
+    const hUp = h('button', { class: 'chint chint--up', type: 'button', tabindex: '-1', 'aria-label': 'Back to the top', html: arrow(-1),
+      onclick: () => stageText.scrollTo({ top: 0, behavior: reduce ? 'instant' : 'smooth' }) });
+    const fadeTop = h('div', { class: 'cfade cfade--top', 'aria-hidden': 'true' }), fadeBot = h('div', { class: 'cfade cfade--bot', 'aria-hidden': 'true' });
+    const side = h('div', { class: 'cside' }, stageText, fadeTop, fadeBot, hUp, hDown);
+    let upTimer = 0, upReady = false;
+    function hints() {
+      const t = stageText, max = t.scrollHeight - t.clientHeight, y = t.scrollTop, more = max - y > 6, away = y > 6;
+      fadeBot.classList.toggle('on', more); hDown.classList.toggle('on', more);
+      fadeTop.classList.toggle('on', away);
+      if (away && !upReady && !upTimer) upTimer = setTimeout(() => { upReady = true; upTimer = 0; hints(); }, 3000);   // the way back up shows after 3 s
+      if (!away) { clearTimeout(upTimer); upTimer = 0; upReady = false; }
+      hUp.classList.toggle('on', away && upReady);
+    }
+    stageText.addEventListener('scroll', hints, { passive: true });
     function buildBodies() { stageText.replaceChildren(...path.map(body)); }
     function refreshChosen() {
       path.forEach((id, k) => {
@@ -566,18 +584,21 @@
       if (A.hydrate) A.hydrate(el, n.art);
       return el;
     }
+    function syncBox() {                              // where the picture sits inside the view (the stars centre on it)
+      if (layer && layer.offsetWidth) space.setBox({ x: layer.offsetLeft, y: layer.offsetTop, w: layer.offsetWidth, h: layer.offsetHeight });
+    }
     function showArt(id, dir, from, instant) {
       const nl = makeLayer(id), old = layer; layer = nl;
       space.setOcc(A.occ && A.occ[id], !(instant || reduce));
       view.style.setProperty('--tint', (A.tint && A.tint[id]) || '#18204A');
       if (instant || reduce) {
-        nl.classList.add('is-in', 'no-anim'); view.append(nl); if (old) old.remove();
+        nl.classList.add('is-in', 'no-anim'); view.append(nl); syncBox(); if (old) old.remove();
         requestAnimationFrame(() => nl.classList.remove('no-anim'));
         return;
       }
       const special = (from === 'cloud' && id === 'protostar') ? 'collapse' : (from === 'protostar' && id === 'cloud') ? 'expand' : '';
       nl.classList.add(special === 'collapse' ? 'pre-ignite' : special === 'expand' ? 'pre-expand' : (dir > 0 ? 'pre-fwd' : 'pre-back'));
-      view.append(nl); void nl.offsetWidth;        // let the start pose register
+      view.append(nl); syncBox(); void nl.offsetWidth;        // let the start pose register
       if (old) {
         old.classList.remove('is-in', 'late');
         old.classList.add(special === 'collapse' ? 'out-collapse' : (dir > 0 ? 'out-fwd' : 'out-back'));
@@ -608,13 +629,14 @@
         h('span', { class: 'dcard__n' }, 'Stage ' + (k + 1)), h('span', { class: 'dcard__orb', 'aria-hidden': 'true' }), h('b', {}, nodes[id].short || nodes[id].title))));
     }
     const vq = matchMedia('(min-width:821px)');      // wide screens: the card row becomes a vertical rail beside the stage
-    function centerDeck() {
+    function centerDeck(instant) {                   // the rail is a normal scroll area; this only brings the current card to the middle
       const cur = deckTrack.children[idx]; if (!cur) return;
-      deckTrack.style.transform = vq.matches
-        ? 'translateY(' + Math.round(deckView.clientHeight / 2 - (cur.offsetTop + cur.offsetHeight / 2)) + 'px)'
-        : 'translateX(' + Math.round(deckView.clientWidth / 2 - (cur.offsetLeft + cur.offsetWidth / 2)) + 'px)';
+      const v = vq.matches, size = v ? deckView.clientHeight : deckView.clientWidth;
+      deckTrack.style.padding = v ? (size / 2) + 'px 0' : '0 ' + (size / 2) + 'px';
+      const to = v ? cur.offsetTop + cur.offsetHeight / 2 - size / 2 : cur.offsetLeft + cur.offsetWidth / 2 - size / 2;
+      deckView.scrollTo({ [v ? 'top' : 'left']: to, [v ? 'left' : 'top']: 0, behavior: instant || reduce ? 'instant' : 'smooth' });
     }
-    vq.addEventListener('change', () => { deckTrack.classList.add('no-anim'); centerDeck(); requestAnimationFrame(() => deckTrack.classList.remove('no-anim')); });
+    vq.addEventListener('change', () => centerDeck(true));
     function decorateDeck() {
       [...deckTrack.children].forEach((el, k) => {
         el.classList.toggle('is-cur', k === idx); el.style.setProperty('--dist', Math.abs(k - idx));
@@ -631,7 +653,7 @@
       idx = to; curId = id;
       path.forEach(pid => { const el = body(pid), on = pid === id; el.classList.toggle('is-cur', on); el.inert = !on; el.setAttribute('aria-hidden', String(!on)); });
       decorateDeck();
-      if (changed) stageText.scrollTop = 0;
+      if (changed) { stageText.scrollTop = 0; requestAnimationFrame(hints); }
       prevBtn.disabled = idx === 0; nextBtn.disabled = idx >= path.length - 1;
       live.textContent = 'Stage ' + (idx + 1) + ' of ' + path.length + ': ' + nodes[id].title;
       if (ready && changed) { showArt(id, dir, from); space.travel(dir); setSize(id); }
@@ -659,7 +681,7 @@
     massInput.addEventListener('input', () => { state.mass = toMass(+massInput.value); renderMass(); update('mass'); });
 
     const stage = h('div', { class: 'cstage2', tabindex: '0', role: 'region', 'aria-roledescription': 'carousel',
-      'aria-label': 'Life of a star. Left and right arrow keys change the stage.' }, view, stageText);
+      'aria-label': 'Life of a star. Left and right arrow keys change the stage.' }, view, side);
     const root = h('div', { class: 'wrap cycle' },
       h('div', { class: 'cycle__head' }, h('h3', {}, c.title), c.lead && h('p', { class: 'cycle__lead' }, c.lead), h('p', {}, c.blurb)),
       massBlock,
@@ -688,13 +710,12 @@
     };
     update('init');
     requestAnimationFrame(() => {
-      measure(); addEventListener('resize', measure);
+      measure(); hints(); setTimeout(hints, 400); addEventListener('resize', measure);
       if ('ResizeObserver' in window) { const mo = new ResizeObserver(measure); mo.observe(massBlock); mo.observe(deckRow); }                    // needs layout, so wait until it is on the page
       ready = true;
       space.resize(); showArt(curId, 1, null, true); setSize(curId);
-      deckTrack.classList.add('no-anim'); decorateDeck();
-      requestAnimationFrame(() => deckTrack.classList.remove('no-anim'));
-      if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => { space.resize(); centerDeck(); }); ro.observe(view); ro.observe(deckView); }
+      centerDeck(true);
+      if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => { space.resize(); syncBox(); centerDeck(true); }); ro.observe(view); ro.observe(deckView); ro.observe(stageText); }
       if ('IntersectionObserver' in window) new IntersectionObserver((es) => { inView = es[0].isIntersecting; space.run(inView && !document.hidden); }, { threshold: 0.05 }).observe(root);
       document.addEventListener('visibilitychange', () => space.run(inView && !document.hidden));
     });
