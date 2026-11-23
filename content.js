@@ -437,9 +437,7 @@ window.SITE = {
                     title: "Deep stories", games: [
                         { name: "Hollow Knight", icon: "assets/games/hollow-knight.jpg" },
                         { name: "Hollow Knight Silksong", icon: "assets/games/silksong.jpg" },
-                        { name: "Undertale", icon: "assets/games/undertale.png" },
                         { name: "Celeste", icon: "assets/games/celeste.jpg" },
-                        { name: "Ori and the Blind Forest", icon: "assets/games/ori.webp" },
                         { name: "Dead Cells", icon: "assets/games/dead-cells.jpg" },
                         { name: "Hyper Light Drifter", icon: "assets/games/hld.png" },
                     ]
@@ -449,19 +447,19 @@ window.SITE = {
                         { name: "FNAF series", icon: "assets/games/fnaf.jpg" },
                         { name: "Minecraft", icon: "assets/games/mc.png" },
                         { name: "OG Angry Birds Series", icon: "assets/games/angry-birds.jpg" },
+                        { name: "Mekorama", icon: "assets/games/mekorama.png" },
                     ]
                 },
                 {
                     title: "Classic", games: [
                         { name: "Wordle", icon: "assets/games/wordle.png" },
                         { name: "Chess", icon: "assets/games/chess-com.jpg" },
+                        { name: "Shiritori", icon: "assets/games/shiritori.jpg" },
                     ]
                 },
                 {
                     title: "Rhythm and arcade", games: [
                         { name: "Geometry Dash", icon: "assets/games/geometry-dash.jpg" },
-                        { name: "Osu", icon: "assets/games/osu.png" },
-                        { name: "A Dance of Fire and Ice", icon: "assets/games/adofai.png" },
                     ]
                 },
                 {
@@ -473,12 +471,11 @@ window.SITE = {
                 },
                 {
                     title: "Gacha", games: [
-                        { name: "Zenless Zone Zero", main: true, icon: "assets/games/zzz.webp" },
+                        { name: "Zenless Zone Zero", icon: "assets/games/zzz.webp" },
                         { name: "Blue Archive", icon: "assets/games/ba.jpg" },
                         { name: "Arknights: Endfield", icon: "assets/games/akef.jpg" },
                         { name: "Nikke", icon: "assets/games/nikke.png" },
                         { name: "Wuthering Waves", icon: "assets/games/wuwa.webp" },
-                        { name: "Limbus Company", icon: "assets/games/limbus.jpg" },
                     ]
                 }
             ]

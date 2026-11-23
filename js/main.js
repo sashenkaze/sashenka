@@ -359,6 +359,7 @@
   }
   /* ----- Life of a star (Field notes) ----- */
     /* ----- space background: stars drift, and streak past while the stage changes ----- */
+  const TRAVEL = 1300;                           // ms: stars streak, art moves and size marker slides all share this time
   function makeSpace(canvas) {
     const ctx = canvas.getContext('2d');
     const COL = ['242,233,201', '255,224,138', '143,184,255'];
@@ -366,7 +367,7 @@
       a: Math.random() * 6.283, r: Math.sqrt(Math.random()) * 1.1, d: 0.35 + Math.random() * 0.9,
       s: 0.6 + Math.random() * 1.3, p: Math.random() * 6.283, c: COL[Math.floor(Math.random() * 3)]
     }));
-    const PEAK = 1.7, DUR = 1300;                 // streak speed and travel time: tune here
+    const PEAK = 1.7, DUR = TRAVEL;                 // streak speed and travel time: tune here
     let W = 0, H = 0, raf = 0, last = 0, active = false, tr = null;
     function draw(now, speed, dt) {
       ctx.clearRect(0, 0, W, H);
@@ -471,8 +472,9 @@
     function renderMass() {
       const m = state.mass, z = zoneOf(m);
       const unsure = (M.unsure || []).some(([lo, hi]) => m >= lo && m <= hi);
-      readout.replaceChildren(h('b', {}, fmt(m) + ' solar masses'), ' · ' + z.name + ': ' + z.result,
-        unsure && h('small', {}, 'Near a striped edge. Scientists are not sure which way this goes.'));
+      const kids = [h('b', {}, fmt(m) + ' solar masses'), ' · ' + z.name + ': ' + z.result];
+      if (unsure) kids.push(h('small', {}, 'Near a striped edge. Scientists are not sure which way this goes.'));
+      readout.replaceChildren(...kids);
       massInput.setAttribute('aria-valuetext', fmt(m) + ' solar masses, ' + z.name + (unsure ? ', outcome uncertain' : ''));
     }
     function syncMass() { massInput.value = toVal(state.mass); renderMass(); }
@@ -555,7 +557,7 @@
       if (old) {
         old.classList.remove('is-in', 'late');
         old.classList.add(special === 'collapse' ? 'out-collapse' : (dir > 0 ? 'out-fwd' : 'out-back'));
-        setTimeout(() => old.remove(), 1200);
+        setTimeout(() => old.remove(), TRAVEL + 150);
       }
       nl.classList.remove('pre-ignite', 'pre-expand', 'pre-fwd', 'pre-back');
       nl.classList.add('is-in'); if (special) nl.classList.add('late');
@@ -574,6 +576,7 @@
     const nextBtn = h('button', { class: 'cdeck__btn', type: 'button', 'aria-label': 'Next stage', onclick: () => go(idx + 1) }, chev('M9 5l7 7-7 7'));
     const deckTrack = h('div', { class: 'cdeck__track' });
     const deckView = h('div', { class: 'cdeck__view' }, deckTrack);
+    const deckRow = h('div', { class: 'cdeck' }, prevBtn, deckView, nextBtn);
     const live = h('p', { class: 'sr', 'aria-live': 'polite' });
     function buildDeck() {
       deckTrack.replaceChildren(...path.map((id, k) => h('button', { class: 'dcard', type: 'button',
@@ -600,6 +603,7 @@
       idx = to; curId = id;
       path.forEach(pid => { const el = body(pid), on = pid === id; el.classList.toggle('is-cur', on); el.inert = !on; el.setAttribute('aria-hidden', String(!on)); });
       decorateDeck();
+      if (changed) stageText.scrollTop = 0;
       prevBtn.disabled = idx === 0; nextBtn.disabled = idx >= path.length - 1;
       live.textContent = 'Stage ' + (idx + 1) + ' of ' + path.length + ': ' + nodes[id].title;
       if (ready && changed) { showArt(id, dir, from); space.travel(dir); setSize(id); }
@@ -627,7 +631,7 @@
     const root = h('div', { class: 'wrap cycle' },
       h('div', { class: 'cycle__head' }, h('h3', {}, c.title), c.lead && h('p', { class: 'cycle__lead' }, c.lead), h('p', {}, c.blurb)),
       massBlock,
-      h('div', { class: 'cdeck' }, prevBtn, deckView, nextBtn), live,
+      deckRow, live,
       stage,
       c.sources && h('details', { class: 'csrc' }, h('summary', {}, 'Sources and caveats'),
         c.sourcesNote && h('p', {}, c.sourcesNote),
@@ -646,8 +650,15 @@
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) go(idx + (dx < 0 ? 1 : -1));
     });
 
+    root.style.setProperty('--travel', TRAVEL + 'ms');
+    const measure = () => {                          // heights the sticky slider and the stage height depend on
+      root.style.setProperty('--cmass-h', massBlock.offsetHeight + 'px');
+      root.style.setProperty('--deck-h', deckRow.offsetHeight + 'px');
+    };
     update('init');
-    requestAnimationFrame(() => {                    // needs layout, so wait until it is on the page
+    requestAnimationFrame(() => {
+      measure(); addEventListener('resize', measure);
+      if ('ResizeObserver' in window) { const mo = new ResizeObserver(measure); mo.observe(massBlock); mo.observe(deckRow); }                    // needs layout, so wait until it is on the page
       ready = true;
       space.resize(); showArt(curId, 1, null, true); setSize(curId);
       deckTrack.classList.add('no-anim'); decorateDeck();
@@ -872,15 +883,17 @@
     });
   }
   // dock: hide while scrolling down, return on scroll up
-  const dock = $('#dock'); let lastY = scrollY, dockHidden = false;
+  const dock = $('#dock'), root_ = document.documentElement; let lastY = scrollY, dockHidden = false;
+  const measureDock = () => root_.style.setProperty('--dock-h', (dock.offsetHeight + (parseFloat(getComputedStyle(dock).top) || 12)) + 'px');
+  measureDock(); addEventListener('resize', measureDock);
   function dockScroll() {
     const y = scrollY, dy = y - lastY;
     if (Math.abs(dy) < 8) return;                                   // ignore tiny jitters
     const hide = dy > 0 && y > 120 && !dock.querySelector(':focus-visible');
-    if (hide !== dockHidden) { dockHidden = hide; dock.classList.toggle('is-hidden', hide); }
+    if (hide !== dockHidden) { dockHidden = hide; dock.classList.toggle('is-hidden', hide); root_.classList.toggle('dock-hidden', hide); }
     lastY = y;
   }
-  dock.addEventListener('focusin', () => { dockHidden = false; dock.classList.remove('is-hidden'); });
+  dock.addEventListener('focusin', () => { dockHidden = false; dock.classList.remove('is-hidden'); root_.classList.remove('dock-hidden'); });
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   // gentle reveal
