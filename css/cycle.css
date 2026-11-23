@@ -52,6 +52,16 @@ html.dock-hidden{--sk-top:.6rem}
 .dcard:hover:not(.is-cur){border-color:#E8B04B}
 .dcard.is-cur{scale:1.1;opacity:1;background:#E8B04B;color:#0B1026;border-color:#E8B04B}
 
+/* stage + vertical card rail (wide screens) */
+.cwork{position:relative;padding-right:178px}
+.cwork .cdeck{position:absolute;top:0;right:0;bottom:0;width:164px;margin:0;grid-template-columns:none;grid-template-rows:40px minmax(0,1fr) 40px;gap:.3rem}
+.cwork .cdeck__btn{width:100%;height:40px}
+.cwork .cdeck__btn svg{rotate:90deg}
+.cwork .cdeck__view{min-height:0;padding:0 .3rem;-webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent)}
+.cwork .cdeck__track{flex-direction:column;width:auto;height:max-content;gap:.7rem}
+.cwork .dcard{width:100%;min-height:84px}
+.cwork .dcard.is-cur{scale:1.04}
+
 /* stage: space with the object on the left, text on the right */
 .cstage2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);height:clamp(360px,calc(100vh - var(--cmass-h,150px) - var(--dock-h,60px) - 1.5rem),620px);height:clamp(360px,calc(100svh - var(--cmass-h,150px) - var(--dock-h,60px) - 1.5rem),620px);border:2px solid #E8B04B;background:#070B1E;touch-action:pan-y}
 .cstage2:focus-visible{outline:3px solid #F2E9C9;outline-offset:4px}
@@ -121,13 +131,17 @@ html.dock-hidden{--sk-top:.6rem}
 
 /* phone: picture on top, text below, the card row stays at the top while you read */
 @media (max-width:820px){
-  .cstage2{grid-template-columns:1fr;grid-template-rows:minmax(140px,34%) minmax(0,1fr);
-    height:clamp(400px,calc(100vh - var(--cmass-h,110px) - var(--deck-h,90px) - var(--dock-h,60px) - 1rem),720px);
-    height:clamp(400px,calc(100svh - var(--cmass-h,110px) - var(--deck-h,90px) - var(--dock-h,60px) - 1rem),720px)}
-  .cdeck{position:sticky;top:calc(var(--sk-top) + var(--cmass-h,110px) + .4rem);z-index:20;margin:0 0 .6rem;padding:.3rem;background:#0B1026;border:1px solid rgba(232,176,75,.4);transition:top .3s ease}
-  .cdeck__view{padding:.3rem 0}
-  .dcard{min-height:68px;padding:.4rem .6rem}
+  .cwork{display:flex;flex-direction:column;padding-right:0}
+  .cwork .cdeck{position:relative;inset:auto;width:auto;order:-1;margin:0 0 .6rem;grid-template-rows:none;grid-template-columns:44px minmax(0,1fr) 44px;padding:.3rem;background:#0B1026;border:1px solid rgba(232,176,75,.4)}
+  .cwork .cdeck__btn{width:44px;height:44px}
+  .cwork .cdeck__btn svg{rotate:none}
+  .cwork .cdeck__view{padding:.3rem 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .cwork .cdeck__track{flex-direction:row;width:max-content;height:auto;gap:1.1rem}
+  .cwork .dcard{width:clamp(110px,30vw,128px);min-height:68px;padding:.4rem .6rem}
   .dcard__n{display:none}
+  .cstage2{grid-template-columns:1fr;grid-template-rows:minmax(140px,34%) minmax(0,1fr);
+    height:clamp(400px,calc(100vh - var(--cmass-h,110px) - var(--dock-h,60px) - 1rem),720px);
+    height:clamp(400px,calc(100svh - var(--cmass-h,110px) - var(--dock-h,60px) - 1rem),720px)}
   .ctext{padding:.8rem 1rem}
 }
 

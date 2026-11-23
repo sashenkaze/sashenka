@@ -369,6 +369,23 @@
     }));
     const PEAK = 1.7, DUR = TRAVEL;                 // streak speed and travel time: tune here
     let W = 0, H = 0, raf = 0, last = 0, active = false, tr = null;
+    let occNew = [], occOld = [], occT = 0;       // solid cores of the art: stars are hidden behind them
+    function carve(now) {
+      let kn = 1, ko = 0;
+      if (occT) { const t = (now - occT) / TRAVEL; if (t >= 1) { occT = 0; occOld = []; } else { kn = Math.max(0, Math.min(1, (t - 0.5) * 2)); ko = Math.max(0, 1 - t * 2); } }
+      if (!occNew.length && !occOld.length) return;
+      const lw = 0.88 * W, lh = 0.76 * H, sc = Math.min(lw / 280, lh / 200), ox = 0.06 * W + (lw - 280 * sc) / 2, oy = 0.04 * H + (lh - 200 * sc) / 2;
+      ctx.save(); ctx.globalCompositeOperation = 'destination-out';
+      [[occOld, ko], [occNew, kn]].forEach(([list, k]) => {
+        if (k <= 0) return;
+        for (const [x, y, r] of list) {
+          const R = r * sc * (0.6 + 0.4 * k), X = ox + x * sc, Y = oy + y * sc, g = ctx.createRadialGradient(X, Y, 0, X, Y, R * 1.06);
+          g.addColorStop(0, 'rgba(0,0,0,' + k + ')'); g.addColorStop(0.86, 'rgba(0,0,0,' + k + ')'); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, R * 1.06, 0, 6.283); ctx.fill();
+        }
+      });
+      ctx.restore();
+    }
     function draw(now, speed, dt) {
       ctx.clearRect(0, 0, W, H);
       const cx = W / 2, cy = H * 0.52, R = Math.hypot(W, H) * 0.55, moving = Math.abs(speed) > 0.04;
@@ -389,6 +406,7 @@
           ctx.beginPath(); ctx.arc(x, y, s.s * 0.75, 0, 6.283); ctx.fill();
         }
       }
+      carve(now);
     }
     function resize() {
       const b = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -406,6 +424,11 @@
     }
     return {
       resize,
+      setOcc(list, animate) {
+        occOld = occNew; occNew = list || [];
+        occT = animate && !reduce && active ? performance.now() : 0; if (!occT) occOld = [];
+        if (!raf && W) draw(performance.now(), 0, 0);
+      },
       run(on) { if (on === active) return; active = on; if (on && !reduce) { last = performance.now(); raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; } },
       travel(dir) { if (!reduce && active) tr = { t0: performance.now(), dir }; }
     };
@@ -513,7 +536,7 @@
         !n.next && h('div', { class: 'cend' },
           h('p', {}, n.end || 'End of this path.'),
           h('div', { class: 'cend__btns' },
-            h('button', { type: 'button', onclick: () => massInput.focus() }, 'Try another mass'),
+            h('button', { type: 'button', onclick: backToFork }, 'Try another mass'),
             h('button', { type: 'button', onclick: () => restart() }, 'Start over'))));
       bodies.set(id, el);
       return el;
@@ -545,6 +568,7 @@
     }
     function showArt(id, dir, from, instant) {
       const nl = makeLayer(id), old = layer; layer = nl;
+      space.setOcc(A.occ && A.occ[id], !(instant || reduce));
       view.style.setProperty('--tint', (A.tint && A.tint[id]) || '#18204A');
       if (instant || reduce) {
         nl.classList.add('is-in', 'no-anim'); view.append(nl); if (old) old.remove();
@@ -583,10 +607,14 @@
         style: '--o:' + ((A.orb && A.orb[id]) || '#fff'), 'aria-label': 'Stage ' + (k + 1) + ': ' + nodes[id].title, onclick: () => go(k) },
         h('span', { class: 'dcard__n' }, 'Stage ' + (k + 1)), h('span', { class: 'dcard__orb', 'aria-hidden': 'true' }), h('b', {}, nodes[id].short || nodes[id].title))));
     }
+    const vq = matchMedia('(min-width:821px)');      // wide screens: the card row becomes a vertical rail beside the stage
     function centerDeck() {
       const cur = deckTrack.children[idx]; if (!cur) return;
-      deckTrack.style.transform = 'translateX(' + Math.round(deckView.clientWidth / 2 - (cur.offsetLeft + cur.offsetWidth / 2)) + 'px)';
+      deckTrack.style.transform = vq.matches
+        ? 'translateY(' + Math.round(deckView.clientHeight / 2 - (cur.offsetTop + cur.offsetHeight / 2)) + 'px)'
+        : 'translateX(' + Math.round(deckView.clientWidth / 2 - (cur.offsetLeft + cur.offsetWidth / 2)) + 'px)';
     }
+    vq.addEventListener('change', () => { deckTrack.classList.add('no-anim'); centerDeck(); requestAnimationFrame(() => deckTrack.classList.remove('no-anim')); });
     function decorateDeck() {
       [...deckTrack.children].forEach((el, k) => {
         el.classList.toggle('is-cur', k === idx); el.style.setProperty('--dist', Math.abs(k - idx));
@@ -619,6 +647,10 @@
       buildDeck(); buildBodies(); refreshChosen();
       go(old.length ? Math.min(diff, path.length - 1) : 0, { focus: src === 'opt' });
     }
+    function backToFork() {                          // step back to the nearest earlier stage where the mass decides what happens
+      let k = idx - 1; for (let i = idx - 1; i >= 0; i--) if (massForks.has(path[i])) { k = i; break; }
+      go(Math.max(0, k)); massInput.focus({ preventScroll: true });
+    }
     function restart() {
       state.mass = M.start; state.wd = 'cool'; state.ns = 'pulsar'; state.core = 'direct';
       update('opt'); go(0, { focus: true });
@@ -631,8 +663,7 @@
     const root = h('div', { class: 'wrap cycle' },
       h('div', { class: 'cycle__head' }, h('h3', {}, c.title), c.lead && h('p', { class: 'cycle__lead' }, c.lead), h('p', {}, c.blurb)),
       massBlock,
-      deckRow, live,
-      stage,
+      h('div', { class: 'cwork' }, stage, deckRow), live,
       c.sources && h('details', { class: 'csrc' }, h('summary', {}, 'Sources and caveats'),
         c.sourcesNote && h('p', {}, c.sourcesNote),
         h('ul', {}, c.sources.map(s => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.label))))));
@@ -663,7 +694,7 @@
       space.resize(); showArt(curId, 1, null, true); setSize(curId);
       deckTrack.classList.add('no-anim'); decorateDeck();
       requestAnimationFrame(() => deckTrack.classList.remove('no-anim'));
-      if ('ResizeObserver' in window) new ResizeObserver(() => { space.resize(); centerDeck(); }).observe(view);
+      if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => { space.resize(); centerDeck(); }); ro.observe(view); ro.observe(deckView); }
       if ('IntersectionObserver' in window) new IntersectionObserver((es) => { inView = es[0].isIntersecting; space.run(inView && !document.hidden); }, { threshold: 0.05 }).observe(root);
       document.addEventListener('visibilitychange', () => space.run(inView && !document.hidden));
     });

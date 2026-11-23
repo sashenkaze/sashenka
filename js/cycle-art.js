@@ -248,6 +248,14 @@ window.CYCLE_ART = (function () {
        ${[20, 70, 120, 170, 215, 265, 310, 345].map((a, i) => `<circle cx="140" cy="100" r="2.2" fill="#8FB8FF" class="a-spark" style="--a:${a}deg;--dl:-${(i * 0.5).toFixed(1)}s"/>`).join('')}
        <circle cx="140" cy="100" r="10" fill="#fff" class="a-last"/>`)
   };
+  /* solid cores [cx, cy, r] in the 280x200 picture: the star field is hidden behind these */
+  art.occ = {
+    protostar: [[140, 100, 34]], brown: [[140, 100, 50]], reddwarf: [[140, 100, 30]], sunlike: [[140, 100, 42]],
+    redgiant: [[132, 100, 76]], nebula: [[140, 100, 30]], whitedwarf: [[196, 100, 34], [84, 100, 12]], blackdwarf: [[140, 100, 32]],
+    typeIa: [[214, 86, 24], [86, 104, 34]], massive: [[140, 100, 40]], supergiant: [[140, 100, 88]], ironcore: [[140, 100, 86]],
+    supernova: [[140, 100, 36]], direct: [[140, 100, 22]], neutron: [[140, 92, 42]], pulsar: [[140, 100, 22]], magnetar: [[140, 100, 22]],
+    kilonova: [[112, 100, 22], [168, 100, 22]], blackhole: [[140, 100, 32]]
+  };
   art.defs = defs;
     art.hydrate = (el, key) => {                       // fills in the procedural nebula picture
     if (key !== 'cloud') return;
