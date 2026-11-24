@@ -68,8 +68,8 @@ html.dock-hidden{--sk-top:.6rem}
 /* text column: scroll hints */
 .cside{position:relative;display:grid;min-width:0;min-height:0}
 .cfade{position:absolute;left:0;right:0;height:38px;z-index:2;pointer-events:none;opacity:0;transition:opacity .25s}
-.cfade--top{top:0;background:linear-gradient(#070B1E,rgba(7,11,30,0))}
-.cfade--bot{bottom:0;background:linear-gradient(0deg,#070B1E,rgba(7,11,30,0))}
+.cfade--top{top:0;background:linear-gradient(var(--fade,#070B1E),transparent)}
+.cfade--bot{bottom:0;background:linear-gradient(0deg,var(--fade,#070B1E),transparent)}
 .cfade.on{opacity:1}
 .chint{position:absolute;left:50%;z-index:3;display:grid;place-items:center;width:34px;height:34px;padding:0;border-radius:50%;background:#E8B04B;color:#0B1026;border:2px solid #0B1026;
   box-shadow:0 0 0 2px #E8B04B,0 4px 12px rgba(0,0,0,.5);cursor:pointer;opacity:0;pointer-events:none;translate:-50% 0;transition:opacity .25s}
@@ -85,9 +85,9 @@ html.dock-hidden{--sk-top:.6rem}
 .cstage2:focus-visible{outline:3px solid #F2E9C9;outline-offset:4px}
 .cview{position:relative;min-height:0;height:100%;overflow:hidden;transition:--tint var(--travel,1300ms) var(--ease);
   background:radial-gradient(ellipse at 50% 58%,var(--tint,#18204A) 0%,#05081A 72%)}
-.lay svg{overflow:visible}
+.lay[data-art="cloud"] svg{overflow:visible}
 .cview canvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
-.lay{position:absolute;inset:4% 6% 20%;z-index:2;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);place-items:center;opacity:0;transform:scale(.6);
+.lay{position:absolute;inset:4% 6% 20%;z-index:2;display:grid;place-items:center;opacity:0;transform:scale(.6);
   transition-property:opacity,transform;transition-duration:calc(var(--travel,1300ms) * .7),var(--travel,1300ms);
   transition-timing-function:ease-in-out,var(--ease);transition-delay:0s,0s}
 .lay svg,.lay img{display:block;width:100%;height:100%;object-fit:contain}
@@ -155,7 +155,7 @@ html.dock-hidden{--sk-top:.6rem}
   .cwork .cdeck__btn svg{rotate:none}
   .cwork .cdeck__view{padding:.3rem 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior:auto;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
   .cwork .cdeck__track{flex-direction:row;width:max-content;height:auto;gap:1.1rem}
-  .lay{inset:3% 5% 3.9rem}
+  .lay{inset:3% 5% 3.9rem;grid-template:minmax(0,1fr) / minmax(0,1fr)}
   .cview .csize{left:5%;right:5%}
   .cwork .dcard{width:clamp(110px,30vw,128px);min-height:68px;padding:.4rem .6rem}
   .dcard__n{display:none}

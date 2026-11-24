@@ -13,7 +13,7 @@ window.SITE = {
         intro: "I'm Sashenka, but Shenka or Aze works too. I'm finishing vocational school in Software Development, and I learn best by taking things apart and putting them back together. Below: where I studied, what I'm into outside class, and some music while you look around.",
         avatar: "assets/avatar.svg",          // swap for "assets/me.jpg" when you have a photo
         avatarAlt: "Placeholder portrait: a bust split into a red half and a blue half",
-        photoCaption: "Placeholder. Maybe I'll upload my selfie sometimes.",
+        photoCaption: "Placeholder.",
         status: [
             { label: "Now", text: "Final year at SMK, majoring in IT" },
         ]
@@ -424,7 +424,7 @@ window.SITE = {
                 { label: "Cartoons, Anime/Manga, Light Novel", pct: 80 },
                 { label: "Actual Movie", pct: 20 }
             ],
-            note: "Roughly. Most of what I seek out on my own is anime, manga and cartoons. Live-action gets its turn too, I just don't go hunting for it as often.",
+            note: "Leans toward drawn and animated worlds, though live-action pops up every so often.",
             genres: ["Sci-fi", "Adventure", "Mystery", "Psychological", "Horror", "Comedy", "Slice of life", "Drama", "Gore"]
         },
 

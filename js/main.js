@@ -238,9 +238,39 @@
     return v;
   }
 
+  /* floating "more below / back to top" arrows + edge shadows for any scroll area.
+     The first down arrow shows at once; every other arrow waits 3 s after the reader lands in the state that needs it. */
+  function scrollHints(scroller, host) {
+    const arrow = (dir) => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="' + (dir > 0 ? 'M6 9l6 6 6-6' : 'M6 15l6-6 6 6') + '" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const go = (top) => scroller.scrollTo({ top, behavior: reduce ? 'instant' : 'smooth' });
+    const dn = h('button', { class: 'chint chint--dn', type: 'button', tabindex: '-1', 'aria-label': 'Scroll down for more', html: arrow(1), onclick: () => go(scroller.scrollHeight) });
+    const up = h('button', { class: 'chint chint--up', type: 'button', tabindex: '-1', 'aria-label': 'Back to the top', html: arrow(-1), onclick: () => go(0) });
+    const fT = h('div', { class: 'cfade cfade--top', 'aria-hidden': 'true' }), fB = h('div', { class: 'cfade cfade--bot', 'aria-hidden': 'true' });
+    host.append(fT, fB, up, dn);
+    let fresh = true, upReady = false, dnReady = false, upT = 0, dnT = 0, wasAway = false;
+    function update() {
+      const y = scroller.scrollTop, more = scroller.scrollHeight - scroller.clientHeight - y > 6, away = y > 6;
+      if (away) fresh = false;
+      if (!away && wasAway) { dnReady = false; clearTimeout(dnT); dnT = 0; }       // back at the top: the down arrow has to wait again
+      wasAway = away;
+      if (away && !upReady && !upT) upT = setTimeout(() => { upReady = true; upT = 0; update(); }, 3000);
+      if (!away) { clearTimeout(upT); upT = 0; upReady = false; }
+      if (more && !fresh && !dnReady && !dnT) dnT = setTimeout(() => { dnReady = true; dnT = 0; update(); }, 3000);
+      if (!more) { clearTimeout(dnT); dnT = 0; dnReady = false; }
+      const showDn = more && (fresh || dnReady), showUp = away && upReady;
+      dn.classList.toggle('on', showDn); fB.classList.toggle('on', more);
+      up.classList.toggle('on', showUp); fT.classList.toggle('on', away);
+    }
+    function reset() { fresh = true; upReady = dnReady = wasAway = false; clearTimeout(upT); clearTimeout(dnT); upT = dnT = 0; update(); }
+    scroller.addEventListener('scroll', update, { passive: true });
+    return { update, reset };
+  }
+
   // modal
   const modal = $('#modal'), stage = $('#mdStage');
   let lastFocus = null, modalT = 0, openTok = 0;
+  const plaque = $('.modal__plaque'), mh = scrollHints(plaque, $('.modal__side'));
+  addEventListener('resize', mh.update);
   function openModal(l, trigger) {
     clearTimeout(modalT);
     const tok = ++openTok; lastFocus = trigger;
@@ -251,6 +281,7 @@
     stage.style.background = l.model.bg || '';
     modal.hidden = false; document.documentElement.classList.add('modal-open');
     requestAnimationFrame(() => modal.classList.add('is-open'));
+    plaque.scrollTop = 0; requestAnimationFrame(mh.reset); setTimeout(mh.update, 350);
     $('#mdClose').focus();
     viewerReady().then((ok) => {
       if (tok !== openTok) return;
@@ -543,23 +574,8 @@
       return el;
     }
     const stageText = h('div', { class: 'ctext' });
-    const arrow = (dir) => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="' + (dir > 0 ? 'M6 9l6 6 6-6' : 'M6 15l6-6 6 6') + '" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const hDown = h('button', { class: 'chint chint--dn', type: 'button', tabindex: '-1', 'aria-label': 'Scroll down for more', html: arrow(1),
-      onclick: () => stageText.scrollTo({ top: stageText.scrollHeight, behavior: reduce ? 'instant' : 'smooth' }) });
-    const hUp = h('button', { class: 'chint chint--up', type: 'button', tabindex: '-1', 'aria-label': 'Back to the top', html: arrow(-1),
-      onclick: () => stageText.scrollTo({ top: 0, behavior: reduce ? 'instant' : 'smooth' }) });
-    const fadeTop = h('div', { class: 'cfade cfade--top', 'aria-hidden': 'true' }), fadeBot = h('div', { class: 'cfade cfade--bot', 'aria-hidden': 'true' });
-    const side = h('div', { class: 'cside' }, stageText, fadeTop, fadeBot, hUp, hDown);
-    let upTimer = 0, upReady = false;
-    function hints() {
-      const t = stageText, max = t.scrollHeight - t.clientHeight, y = t.scrollTop, more = max - y > 6, away = y > 6;
-      fadeBot.classList.toggle('on', more); hDown.classList.toggle('on', more);
-      fadeTop.classList.toggle('on', away);
-      if (away && !upReady && !upTimer) upTimer = setTimeout(() => { upReady = true; upTimer = 0; hints(); }, 3000);   // the way back up shows after 3 s
-      if (!away) { clearTimeout(upTimer); upTimer = 0; upReady = false; }
-      hUp.classList.toggle('on', away && upReady);
-    }
-    stageText.addEventListener('scroll', hints, { passive: true });
+    const side = h('div', { class: 'cside' }, stageText);
+    const sh = scrollHints(stageText, side);
     function buildBodies() { stageText.replaceChildren(...path.map(body)); }
     function refreshChosen() {
       path.forEach((id, k) => {
@@ -579,6 +595,7 @@
 
     function makeLayer(id) {
       const n = nodes[id], el = h('div', { class: 'lay' });
+    el.dataset.art = n.art;
       if (n.image) el.append(h('img', { src: n.image, alt: n.imageAlt || '', decoding: 'async' }));
       else el.innerHTML = A[n.art] ? A[n.art]() : '';
       if (A.hydrate) A.hydrate(el, n.art);
@@ -629,7 +646,22 @@
         h('span', { class: 'dcard__n' }, 'Stage ' + (k + 1)), h('span', { class: 'dcard__orb', 'aria-hidden': 'true' }), h('b', {}, nodes[id].short || nodes[id].title))));
     }
     const vq = matchMedia('(min-width:821px)');      // wide screens: the card row becomes a vertical rail beside the stage
-    function centerDeck(instant) {                   // the rail is a normal scroll area; this only brings the current card to the middle
+    let progUntil = 0, railT = 0;                    // ignore scroll events caused by our own centering
+    function pickCentered(live) {                    // whatever card sits in the middle of the rail becomes the open stage
+      const v = vq.matches, mid = v ? deckView.scrollTop + deckView.clientHeight / 2 : deckView.scrollLeft + deckView.clientWidth / 2;
+      let best = idx, bd = 1e9;
+      [...deckTrack.children].forEach((c, i) => { const d = Math.abs((v ? c.offsetTop + c.offsetHeight / 2 : c.offsetLeft + c.offsetWidth / 2) - mid); if (d < bd) { bd = d; best = i; } });
+      if (best !== idx) go(best, { rail: live === true });
+    }
+    let railRaf = 0, railLast = 0;
+    deckView.addEventListener('scroll', () => {
+      if (performance.now() < progUntil) return;
+      clearTimeout(railT); railT = setTimeout(() => { pickCentered(); centerDeck(); }, 160);   // settle: snap the card to the middle
+      if (railRaf) return;                           // while moving: the detail follows live, at most every 90 ms
+      railRaf = requestAnimationFrame(() => { railRaf = 0; const t = performance.now(); if (t - railLast < 90) return; railLast = t; pickCentered(true); });
+    }, { passive: true });
+    function centerDeck(instant) {
+      progUntil = performance.now() + (instant || reduce ? 200 : 900); clearTimeout(railT);                   // the rail is a normal scroll area; this only brings the current card to the middle
       const cur = deckTrack.children[idx]; if (!cur) return;
       const v = vq.matches, size = v ? deckView.clientHeight : deckView.clientWidth;
       deckTrack.style.padding = v ? (size / 2) + 'px 0' : '0 ' + (size / 2) + 'px';
@@ -637,12 +669,12 @@
       deckView.scrollTo({ [v ? 'top' : 'left']: to, [v ? 'left' : 'top']: 0, behavior: instant || reduce ? 'instant' : 'smooth' });
     }
     vq.addEventListener('change', () => centerDeck(true));
-    function decorateDeck() {
+    function decorateDeck(o) {
       [...deckTrack.children].forEach((el, k) => {
         el.classList.toggle('is-cur', k === idx); el.style.setProperty('--dist', Math.abs(k - idx));
         if (k === idx) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
       });
-      centerDeck();
+      if (!(o && o.rail)) centerDeck();
     }
 
     /* ----- moving around ----- */
@@ -652,8 +684,8 @@
       const dir = to >= idx ? 1 : -1, changed = id !== from;
       idx = to; curId = id;
       path.forEach(pid => { const el = body(pid), on = pid === id; el.classList.toggle('is-cur', on); el.inert = !on; el.setAttribute('aria-hidden', String(!on)); });
-      decorateDeck();
-      if (changed) { stageText.scrollTop = 0; requestAnimationFrame(hints); }
+      decorateDeck(o);
+      if (changed) { stageText.scrollTop = 0; requestAnimationFrame(sh.reset); }
       prevBtn.disabled = idx === 0; nextBtn.disabled = idx >= path.length - 1;
       live.textContent = 'Stage ' + (idx + 1) + ' of ' + path.length + ': ' + nodes[id].title;
       if (ready && changed) { showArt(id, dir, from); space.travel(dir); setSize(id); }
@@ -710,12 +742,12 @@
     };
     update('init');
     requestAnimationFrame(() => {
-      measure(); hints(); setTimeout(hints, 400); addEventListener('resize', measure);
+      measure(); sh.update(); setTimeout(sh.update, 400); addEventListener('resize', measure);
       if ('ResizeObserver' in window) { const mo = new ResizeObserver(measure); mo.observe(massBlock); mo.observe(deckRow); }                    // needs layout, so wait until it is on the page
       ready = true;
       space.resize(); showArt(curId, 1, null, true); setSize(curId);
       centerDeck(true);
-      if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => { space.resize(); syncBox(); centerDeck(true); }); ro.observe(view); ro.observe(deckView); ro.observe(stageText); }
+      if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => { space.resize(); syncBox(); centerDeck(true); sh.update(); }); ro.observe(view); ro.observe(deckView); ro.observe(stageText); ro.observe(stageText.firstElementChild || stageText); }
       if ('IntersectionObserver' in window) new IntersectionObserver((es) => { inView = es[0].isIntersecting; space.run(inView && !document.hidden); }, { threshold: 0.05 }).observe(root);
       document.addEventListener('visibilitychange', () => space.run(inView && !document.hidden));
     });
@@ -825,10 +857,10 @@
     const w = c.watch;
     const watch = panel('watch',
       h('h3', {}, w.title),
-      h('div', { class: 'meter', role: 'img', 'aria-label': w.split.map(s => s.pct + '% ' + s.label).join(', ') },
+      w.split && h('div', { class: 'meter', role: 'img', 'aria-label': w.split.map(s => s.pct + '% ' + s.label).join(', ') },
         w.split.map(s => h('span', { style: 'flex:' + s.pct, title: s.label }, s.pct + '% ' + s.label))),
       h('p', {}, w.note),
-      h('ul', { class: 'stubs' }, w.genres.map(g => h('li', { class: 'stub' }, g))));
+      h('ul', { class: 'stubs' }, (w.moods || w.genres || []).map(g => h('li', { class: 'stub' }, g))));
 
     const p = c.play;
     const play = panel('play', h('h3', {}, p.title), p.blurb && h('p', { class: 'panel__blurb' }, p.blurb),
@@ -954,16 +986,25 @@
     $$('[data-reveal]').forEach(n => { n.classList.add('rv'); ro.observe(n); });
   }
 
-  // draggable stickers (mouse only; touch keeps normal scrolling)
-  if (matchMedia('(pointer:fine)').matches) {
-    $$('[data-drag]').forEach((el) => {
-      let sx = 0, sy = 0, ox = 0, oy = 0, drag = false;
-      el.addEventListener('pointerdown', (e) => { drag = true; sx = e.clientX - ox; sy = e.clientY - oy; el.setPointerCapture(e.pointerId); el.classList.add('is-drag'); });
-      el.addEventListener('pointermove', (e) => { if (!drag) return; ox = e.clientX - sx; oy = e.clientY - sy; el.style.setProperty('--dx', ox + 'px'); el.style.setProperty('--dy', oy + 'px'); });
-      const end = () => { drag = false; el.classList.remove('is-drag'); };
-      el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  // draggable stickers: mouse drags at once; on touch, press and hold a moment to pick one up (a quick swipe still scrolls the page)
+  $$('[data-drag]').forEach((el) => {
+    let sx = 0, sy = 0, ox = 0, oy = 0, drag = false, hold = 0, px = 0, py = 0, pid = -1;
+    const grab = () => { drag = true; sx = px - ox; sy = py - oy; try { el.setPointerCapture(pid); } catch (_) {} el.classList.add('is-drag'); if (navigator.vibrate) navigator.vibrate(12); };
+    const end = () => { clearTimeout(hold); hold = 0; if (drag) { drag = false; el.classList.remove('is-drag'); } };
+    el.addEventListener('pointerdown', (e) => {
+      px = e.clientX; py = e.clientY; pid = e.pointerId;
+      if (e.pointerType === 'mouse') grab(); else { clearTimeout(hold); hold = setTimeout(grab, 260); }
     });
-  }
+    el.addEventListener('pointermove', (e) => {
+      px = e.clientX; py = e.clientY;
+      if (!drag) return;
+      ox = px - sx; oy = py - sy; el.style.setProperty('--dx', ox + 'px'); el.style.setProperty('--dy', oy + 'px');
+    });
+    el.addEventListener('touchmove', (e) => { if (drag) e.preventDefault(); }, { passive: false });
+    el.addEventListener('contextmenu', (e) => { if (e.pointerType !== 'mouse') e.preventDefault(); });
+    el.addEventListener('pointerup', (e) => { const quick = hold && !drag; end(); if (quick) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); } });
+    el.addEventListener('pointercancel', (e) => { if (!drag) { clearTimeout(hold); hold = 0; } else end(); });
+  });
 
   // sound: one delegated listener, character depends on the section
   document.addEventListener('click', (e) => {
